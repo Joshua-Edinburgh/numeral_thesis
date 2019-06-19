@@ -70,12 +70,12 @@ MAX_LENGTH = NUM_WORD * MAX_LEN_WORD # Max length of whole sequence
 '''
 hyperparameters of model
 '''
-SEL_CANDID = 5          # Number of candidate when selecting
+SEL_CANDID = 3          # Number of candidate when selecting
 ATTRI_SIZE = 3          # Number of attributes, i.e., number of digits
 NUM_SYSTEM = 10         # Number system, usually just use decimal
 HIDDEN_SIZE = 55       
 BATCH_SIZE = 2
-MSG_MAX_LEN = NUM_WORD + 2
+MSG_MAX_LEN = NUM_WORD + 2      # Controlled by ourselves
 
 
 
