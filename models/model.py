@@ -225,8 +225,9 @@ class PredictorMLP(nn.Module):
         cat_vectors = torch.cat((emb_candidates, hid_candidates), dim=2) # Concatenate to get shape [N_B, SEL_CANDID, 2*Hidden]
         pred_vector = self.lin(cat_vectors).squeeze(-1)     # Shape should be [N_B, SEL_CANDID]
         pred_prob = F.softmax(pred_vector)
+        lg_pred_prob = F.log_softmax(pred_vector)
         
-        return pred_prob
+        return lg_pred_prob, pred_prob
         
         
 class SpeakingAgent(nn.Module):
@@ -256,9 +257,9 @@ class ListeningAgent(nn.Module):
     
     def forward(self, data_candidates, msg, mask):
         last_hidden, _ = self.msg_decoder.forward(msg, mask)
-        pred_prob = self.predictor.forward(last_hidden, data_candidates)
+        lg_pred_prob, pred_prob = self.predictor.forward(last_hidden, data_candidates)
         
-        return pred_prob
+        return lg_pred_prob, pred_prob
 
 
 

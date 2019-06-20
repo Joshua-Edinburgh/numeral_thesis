@@ -22,7 +22,7 @@ from torch import autograd
 for training model
 '''
 DEVICE = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-LEARNING_RATE = 1e-4 # learning rate
+LEARNING_RATE = 1e-3 # learning rate
 DROPOUT_RATIO = 0.2
 CLIP = 50.0 # max after clipping gradients
 TEACHER_FORCING_RATIO = 0.5
@@ -70,12 +70,13 @@ MAX_LENGTH = NUM_WORD * MAX_LEN_WORD # Max length of whole sequence
 '''
 hyperparameters of model
 '''
-SEL_CANDID = 3          # Number of candidate when selecting
+SEL_CANDID = 10          # Number of candidate when selecting
 ATTRI_SIZE = 3          # Number of attributes, i.e., number of digits
 NUM_SYSTEM = 10         # Number system, usually just use decimal
 HIDDEN_SIZE = 55       
-BATCH_SIZE = 2
+BATCH_SIZE = 100
 MSG_MAX_LEN = NUM_WORD + 2      # Controlled by ourselves
+VALID_RATIO = 0.1       # Ratio of valid set to train set
 
 
 
