@@ -51,19 +51,17 @@ def edit_dist(str1, str2):
     return DM[-1]
 
 
-def num_to_tup(num, length=ATTRI_SIZE):
+def num_to_tup(num, length=ATTRI_SIZE, num_sys = NUM_SYSTEM):
     '''
         Manually change 0 to '000' to ('0', '0', '0'). 
     '''
-    tmp = ''
+    tmp_list = []
     
-    for exp in range(length):
-        if num < NUM_SYSTEM**exp:
-            for i in range(length-exp):
-                tmp += '0'
-                break
-    if num != 0: tmp += str(num)
-    return tuple([s for s in tmp])
+    for i in range(ATTRI_SIZE):
+        index = int(np.mod(num / (NUM_SYSTEM**i), NUM_SYSTEM))
+        tmp_list.append(str(index))      
+    tmp_list.reverse()
+    return tuple([s for s in tmp_list])
 
 
 def one_msg_translator(one_msg, vocab_table_full, padding=True):

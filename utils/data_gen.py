@@ -41,12 +41,12 @@ def gen_candidates(low, high, valid_list, batch = BATCH_SIZE, candi = SEL_CANDID
         return np.asarray(s).reshape((valid_num, candi))
 
 valid_num = int(NUM_SYSTEM**ATTRI_SIZE * VALID_RATIO)
-valid_list = valid_list(0, 10**ATTRI_SIZE, valid_num)
-train_list = list(set([i for i in range(10**ATTRI_SIZE)]) ^ set(valid_list))
+valid_list = valid_list(0, NUM_SYSTEM**ATTRI_SIZE, valid_num)
+train_list = list(set([i for i in range(NUM_SYSTEM**ATTRI_SIZE)]) ^ set(valid_list))
 
 def valid_data_gen():
     sel_idx_val = np.random.randint(0,SEL_CANDID, (len(valid_list),))
-    valid_candidates = gen_candidates(0, 10**ATTRI_SIZE, valid_list, train=False)
+    valid_candidates = gen_candidates(0, NUM_SYSTEM**ATTRI_SIZE, valid_list, train=False)
     valid_full = np.zeros((valid_num,))
     
     for i in range(valid_num):
@@ -65,7 +65,7 @@ def batch_data_gen():
         one_batch = {}
         tmp_list = train_list[i*BATCH_SIZE:(i+1)*BATCH_SIZE]
         sel_idx_train = np.random.randint(0, SEL_CANDID,(BATCH_SIZE,))
-        train_candidates = gen_candidates(0, 10**ATTRI_SIZE, valid_list, train=True)
+        train_candidates = gen_candidates(0, NUM_SYSTEM**ATTRI_SIZE, valid_list, train=True)
         data_batch = np.zeros((BATCH_SIZE,))
         for i in range(BATCH_SIZE):
             train_candidates[i,sel_idx_train[i]] = tmp_list[i]
@@ -78,7 +78,7 @@ def batch_data_gen():
 '''
 batch_list = batch_data_gen()
 data = []
-for i in range(9):
+for i in range(4):
     data.append(set(batch_list[i]['data']))
-data[0].intersection(data[8])
+data[0].intersection(data[1])
 '''

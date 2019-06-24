@@ -51,8 +51,8 @@ class DataEncoderMLP(nn.Module):
         each attribute has NUM_SYSTEM values. Output shape [N_B, 1, hidden]
         Test:
             t = DataEncoderMLP()
-            test = t.gen_embedding(data_batch)  
-            test_forward = t.forward(data_batch)
+            test = t.gen_embedding(train_batch)  
+            test_forward = t.forward(train_batch)
     '''
     def __init__(self, hidden_size=HIDDEN_SIZE):
         super(DataEncoderMLP, self).__init__()

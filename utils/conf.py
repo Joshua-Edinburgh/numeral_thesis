@@ -72,16 +72,16 @@ hyperparameters of model
 '''
 SEL_CANDID = 3          # Number of candidate when selecting
 ATTRI_SIZE = 3          # Number of attributes, i.e., number of digits
-NUM_SYSTEM = 10         # Number system, usually just use decimal
-HIDDEN_SIZE = 55       
-BATCH_SIZE = 100
+NUM_SYSTEM = 5         # Number system, usually just use decimal
+HIDDEN_SIZE = 64       
+BATCH_SIZE = 50
 MSG_MAX_LEN = NUM_WORD + 0      # Controlled by ourselves
-VALID_RATIO = 0.1       # Ratio of valid set to train set
+VALID_RATIO = 0.2       # Ratio of valid set to train set
 
 
 
 # Size of vocabulary this is available for communication
-MSG_VOCSIZE = 10
+MSG_VOCSIZE = 5
 MSG_MODE = 'REINFORCE' # 'SOFTMAX', 'GUMBEL' or 'REINFORCE'
 MSG_TAU = 2. # Hyperparam for gumbel softmax
 MSG_HARD = True # Discretized as one-hot vectors

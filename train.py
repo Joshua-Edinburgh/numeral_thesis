@@ -43,7 +43,7 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, tr
     #speaker.train(True)
     #listener.train(True)
     # =========== Forward and backward propagation =================
-    spk_loss_fun = NLLLoss()        # Use NLL for speaker
+    lis_loss_fun = NLLLoss()        # Use NLL for speaker
     
     spk_optimizer.zero_grad()
     lis_optimizer.zero_grad()
@@ -59,10 +59,10 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, tr
     
             # ========== Perform backpropatation ======
     if MSG_MODE == 'REINFORCE':
-        spk_loss = (reward * spk_log_prob).mean()
+        spk_loss = (reward * spk_log_prob).mean() + 0.01*(torch.exp(spk_log_prob)*spk_log_prob).mean()
         spk_loss.backward()
     
-    lis_loss = spk_loss_fun(lg_lis_pred_prob, true_idx.long())
+    lis_loss = lis_loss_fun(lg_lis_pred_prob, true_idx.long()) + 0.1*(lis_pred_prob*lg_lis_pred_prob).mean()
     lis_loss.mean().backward()
 
             # Clip gradients: gradients are modified in place
@@ -90,8 +90,8 @@ def valid_cal(speaker, listener, valid_full, valid_candidates):
     '''
         Use valid data batch to see the accuracy for validation. 
     '''
-    speaker.train(False)
-    listener.train(False)
+    speaker.eval()
+    listener.eval()
 
     msg, mask, spk_log_prob = speaker(valid_full)
     lg_lis_pred_prob, lis_pred_prob = listener(valid_candidates, msg, mask)
@@ -101,28 +101,47 @@ def valid_cal(speaker, listener, valid_full, valid_candidates):
     
     return val_acc/valid_full.shape[0]
     
-
-
 '''
+# ============= See some fundamental things ====================
+rewards = []
+comp_ps = []
+comp_ss = []
+
+for i in range(700):
+    j = np.mod(i,1)
+    train_batch, train_candidates, sel_idx_train = batch_list[j]['data'], batch_list[j]['candidates'], batch_list[j]['sel_idx']
+    reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
+                             train_batch, train_candidates, sel_idx_train)
+    rewards.append(reward)
+    print(reward)   
+  
+    if i%5 ==0:
+        all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+        comp_p, comp_s = compos_cal(all_msgs)
+        valid_acc = valid_cal(speaker, listener, valid_full, valid_candidates)      
+        print('=====Round %d======='%i)
+        print('Valid acc is %4f'%valid_acc)
+        print('Train acc is %d'%reward)
+        
+        comp_ps.append(comp_p)
+        comp_ss.append(comp_s)  
+'''
+
+
+
 
 # ============= Iterated method 2: alternatively initialize spk and lis =======
 rewards = []
 comp_ps = []
 comp_ss = []
 valid_accs = []
-for i in range(100):
-    train_batch, train_candidates, sel_idx_train, valid_full,valid_candidates, sel_idx_val = batch_data_gen()
+for i in range(2000):
     print('==============Round %d ==============='%i)
-    for j in range(5):
-        reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
-                         train_batch, train_candidates, sel_idx_train, update='SPEAKER')
-        rewards.append(reward)    
-    for j in range(5):
-        reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
-                         train_batch, train_candidates, sel_idx_train, update='LISTENER')
-        rewards.append(reward)
+    reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
+                             train_batch, train_candidates, sel_idx_train)    
+    rewards.append(reward)
         
-    if i%5 == 0:
+    if i%10 == 0:
         all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
         comp_p, comp_s = compos_cal(all_msgs)
         valid_acc = valid_cal(speaker, listener, valid_full, valid_candidates)        
@@ -132,16 +151,14 @@ for i in range(100):
         comp_ps.append(comp_p)
         comp_ss.append(comp_s)
 
-    if i%10 == 5:
-        listener.reset_params()
-    if i%10 == 0:
-        speaker.reset_params()
-        #listener = ListeningAgent().to(DEVICE)
-        #lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
-print(comp_ps)
-print(comp_ss)
+    if i%500 == 250:
+        listener = ListeningAgent().to(DEVICE)
+        lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
+    if i%500 == 0:
+        speaker = SpeakingAgent().to(DEVICE)
+        spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
 
-'''
+
 '''
 # ============= Iterated method 1: regularly initialize listener ==============
 rewards = []
@@ -171,15 +188,14 @@ for i in range(100):
  
 '''    
 
-
+'''
 # ============= General trianing-valid procedure ====================
 rewards = []
 comp_ps = []
 comp_ss = []
 
 for i in range(1000):
-    if i%100 == 0:
-        batch_list = batch_data_gen()
+
     batch_reward = 0
     for j in range(len(batch_list)):
         train_batch, train_candidates, sel_idx_train = batch_list[j]['data'], batch_list[j]['candidates'], batch_list[j]['sel_idx']
@@ -198,7 +214,7 @@ for i in range(1000):
         comp_ps.append(comp_p)
         comp_ss.append(comp_s)
 
-  
+ ''' 
 
 #all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
 #comp_p, comp_s = compos_cal(all_msgs)
