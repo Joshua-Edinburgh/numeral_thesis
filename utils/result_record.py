@@ -51,9 +51,9 @@ def edit_dist(str1, str2):
     return DM[-1]
 
 
-def num_to_str(num, length=ATTRI_SIZE):
+def num_to_tup(num, length=ATTRI_SIZE):
     '''
-        Manually change 0 to '000'. 
+        Manually change 0 to '000' to ('0', '0', '0'). 
     '''
     tmp = ''
     
@@ -63,7 +63,7 @@ def num_to_str(num, length=ATTRI_SIZE):
                 tmp += '0'
                 break
     if num != 0: tmp += str(num)
-    return tmp
+    return tuple([s for s in tmp])
 
 
 def one_msg_translator(one_msg, vocab_table_full, padding=True):
@@ -103,7 +103,7 @@ def msg_generator(speaker, object_list, vocab_table_full, padding=True):
     msgs, _, _ = speaker(all_batch)
     msgs = msgs.transpose(0,1)
     for i in range(msgs.shape[0]):
-        key = num_to_str(object_list[i])
+        key = num_to_tup(object_list[i])
         value = one_msg_translator(msgs[i], vocab_table_full, True)
         all_msg[key] = value
     
@@ -129,7 +129,7 @@ def compos_cal(msg):
         for j in range(len(keys_list)):
             tmp1 = (keys_list[i],keys_list[j])
             concept_pairs.append((keys_list[i],keys_list[j]))
-            tmp2 = (msg[tmp1[0]][0],msg[tmp1[1]][0])
+            tmp2 = (msg[tmp1[0]],msg[tmp1[1]])
             message_pairs.append(tmp2)
             
     # ===== Calculate distant for these pairs ======

@@ -41,7 +41,9 @@ def cat_softmax(probs, mode, tau=1, hard=False, dim=-1):
         ret = y_soft
     return ret
 
-
+def weight_init(m):
+    if isinstance(m, nn.Parameter):
+        torch.nn.init.xavier_normal(m.weight.data)
 
 class DataEncoderMLP(nn.Module):
     '''
@@ -246,6 +248,8 @@ class SpeakingAgent(nn.Module):
 
         return msg, mask, log_prob
 
+    def reset_params(self):
+        self.apply(weight_init)
 
 class ListeningAgent(nn.Module):
     def __init__(self, voc_size = MSG_VOCSIZE+1, hidden_size=HIDDEN_SIZE):
@@ -262,7 +266,8 @@ class ListeningAgent(nn.Module):
         
         return lg_pred_prob, pred_prob
 
-
+    def reset_params(self):
+        self.apply(weight_init)
 
 '''
 speaker = SpeakingAgent()

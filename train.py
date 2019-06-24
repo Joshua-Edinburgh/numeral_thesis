@@ -33,7 +33,7 @@ def cal_correct_preds(data_batch, data_candidate, pred_idx):
     return cnt_correct
 
 
-def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, train_candidates, sel_idx_train, clip=CLIP):
+def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, train_candidates, sel_idx_train, update='BOTH', clip=CLIP):
     '''
         Train one epoch for one batch.
     '''
@@ -53,7 +53,6 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, tr
     
     pred_idx = lis_pred_prob.argmax(dim=1)
     reward = cal_correct_preds(train_batch, train_candidates, pred_idx)
-    #reward = (true_idx==lis_pred_prob.argmax(dim=1)).sum()  # Reward is the number of correct guesses in a batch
     
             # ========== Perform backpropatation ======
     if MSG_MODE == 'REINFORCE':
@@ -67,9 +66,17 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, tr
     nn.utils.clip_grad_norm_(speaker.parameters(), clip)
     nn.utils.clip_grad_norm_(listener.parameters(), clip)
 
-            # Adjust model weights
-    spk_optimizer.step()
-    lis_optimizer.step()
+    if update == 'BOTH':
+        spk_optimizer.step()
+        lis_optimizer.step()        
+    elif update == 'SPEAKER':
+        spk_optimizer.step()
+        lis_optimizer.zero_grad()
+    elif update == 'LISTENER':
+        spk_optimizer.zero_grad()
+        lis_optimizer.step()
+    else:
+        print('Please input "BOTH", "SPEAKER" or "LISTENER" for the train_epoch function')
 
     # =========== Result Statistics ==============
 
@@ -92,10 +99,40 @@ def valid_cal(speaker, listener, valid_full, valid_candidates):
     return val_acc/valid_full.shape[0]
     
 
+
+# ============= Iterated method 1: regularly initialize listener ==============
 rewards = []
 comp_ps = []
 comp_ss = []
-for i in range(500):
+valid_accs = []
+for i in range(100):
+    print('==============Round %d ==============='%i)
+    reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, train_candidates, sel_idx_train, clip=CLIP)
+    valid_acc = valid_cal(speaker, listener, valid_full, valid_candidates)
+    valid_acc = valid_cal(speaker, listener, valid_full, valid_candidates)        
+    print('Valid acc is %4f'%valid_acc)
+    
+    if i%5 == 0:
+        all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+        comp_p, comp_s = compos_cal(all_msgs)
+        valid_acc = valid_cal(speaker, listener, valid_full, valid_candidates)        
+        print('Valid acc is %4f'%valid_acc)
+        valid_accs.append(valid_acc)
+        comp_ps.append(comp_p)
+        comp_ss.append(comp_s)
+
+    if i%10 == 0:
+        listener.reset_params()
+
+ 
+    
+
+'''
+# ============= General trianing-valid procedure ====================
+rewards = []
+comp_ps = []
+comp_ss = []
+for i in range(300):
     print('=====Round %d'%i)
     reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, train_candidates, sel_idx_train, clip=CLIP)
     rewards.append(reward)
@@ -104,8 +141,8 @@ for i in range(500):
         comp_p, comp_s = compos_cal(all_msgs)
         comp_ps.append(comp_p)
         comp_ss.append(comp_s)
-    
-    
+''' 
+  
 
 #all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
 #comp_p, comp_s = compos_cal(all_msgs)
