@@ -18,7 +18,10 @@ listener = ListeningAgent().to(DEVICE)
 spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
 lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
-    
+valid_full, valid_candidates, sel_idx_val = valid_data_gen()
+batch_list = batch_data_gen()
+
+
 def cal_correct_preds(data_batch, data_candidate, pred_idx):
     '''
         Use to calculate the reward or the valid accuracy. As it is possible that
@@ -100,7 +103,7 @@ def valid_cal(speaker, listener, valid_full, valid_candidates):
     
 
 
-
+'''
 
 # ============= Iterated method 2: alternatively initialize spk and lis =======
 rewards = []
@@ -108,6 +111,7 @@ comp_ps = []
 comp_ss = []
 valid_accs = []
 for i in range(100):
+    train_batch, train_candidates, sel_idx_train, valid_full,valid_candidates, sel_idx_val = batch_data_gen()
     print('==============Round %d ==============='%i)
     for j in range(5):
         reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
@@ -137,7 +141,7 @@ for i in range(100):
 print(comp_ps)
 print(comp_ss)
 
-
+'''
 '''
 # ============= Iterated method 1: regularly initialize listener ==============
 rewards = []
@@ -145,6 +149,7 @@ comp_ps = []
 comp_ss = []
 valid_accs = []
 for i in range(100):
+    train_batch, train_candidates, sel_idx_train, valid_full,valid_candidates, sel_idx_val = batch_data_gen()
     print('==============Round %d ==============='%i)
     reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
                          train_batch, train_candidates, sel_idx_train, update='BOTH')
@@ -166,21 +171,33 @@ for i in range(100):
  
 '''    
 
-'''
+
 # ============= General trianing-valid procedure ====================
 rewards = []
 comp_ps = []
 comp_ss = []
-for i in range(300):
-    print('=====Round %d'%i)
-    reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, train_candidates, sel_idx_train, clip=CLIP)
-    rewards.append(reward)
+
+for i in range(1000):
+    if i%100 == 0:
+        batch_list = batch_data_gen()
+    batch_reward = 0
+    for j in range(len(batch_list)):
+        train_batch, train_candidates, sel_idx_train = batch_list[j]['data'], batch_list[j]['candidates'], batch_list[j]['sel_idx']
+        reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
+                             train_batch, train_candidates, sel_idx_train)
+        batch_reward += reward/len(batch_list)    
+    rewards.append(batch_reward)
     if i%5 ==0:
         all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
         comp_p, comp_s = compos_cal(all_msgs)
+        valid_acc = valid_cal(speaker, listener, valid_full, valid_candidates)      
+        print('=====Round %d======='%i)
+        print('Valid acc is %4f'%valid_acc)
+        print('Train acc is %d'%batch_reward)
+        
         comp_ps.append(comp_p)
         comp_ss.append(comp_s)
-''' 
+
   
 
 #all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
