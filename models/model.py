@@ -67,8 +67,9 @@ class DataEncoderMLP(nn.Module):
         '''
             Change [N_B,1] data to [NB,1,ATTRI_SIZE*NUM_SYSTEM] tensor
         '''
-        data_embeddings = np.zeros((BATCH_SIZE, 1, self.emb_size))
-        for b in range(BATCH_SIZE):
+        batch_size = data_batch.shape[0]
+        data_embeddings = np.zeros((batch_size, 1, self.emb_size))
+        for b in range(batch_size):
             for i in range(ATTRI_SIZE):
                 tmp = int(np.mod(data_batch[b] / (NUM_SYSTEM**i), NUM_SYSTEM))
                 index = int(tmp + NUM_SYSTEM*i)

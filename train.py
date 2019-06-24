@@ -18,55 +18,42 @@ listener = ListeningAgent().to(DEVICE)
 spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
 lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
-
-vocab_table_full = [chr(97+int(v)) for v in range(27)]
-vocab_table_full[-1] = '@'
-
-def msg_translator(one_msg, vocab_table_full, padding=True):
+    
+def cal_correct_preds(data_batch, data_candidate, pred_idx):
     '''
-        Translate the message [MAX_LEN, VOCAB+1] to [MAX_LEN] sentence
+        Use to calculate the reward or the valid accuracy. As it is possible that
+        there are multiple same elements in one row of data_candidate, we will
+        check the predicting object rather than index to decide whether it is correct
     '''
-    max_len, vocab_len = one_msg.shape
-    vocab_table = vocab_table_full[:vocab_len]
-    vocab_table[-1] = vocab_table_full[-1]
-    
-    stop_flag = False
-    sentence = []
-    for i in range(max_len):
-        voc_idx = one_msg[i].argmax()
-        tmp_word = vocab_table[voc_idx]
-        
-        if tmp_word == vocab_table[-1]:
-            stop_flag = True
-        if padding == False and stop_flag:            
-            break
-        if padding == True and stop_flag:
-            tmp_word = vocab_table[-1]
-        sentence.append(tmp_word)
-    
-    return ''.join(sentence)
-    
-    
+    batch_size = data_batch.shape[0]
+    cnt_correct = 0
+    for i in range(batch_size):
+        if data_candidate[i][pred_idx[i]]==data_batch[i]:
+            cnt_correct += 1
+    return cnt_correct
 
 
-
-def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, data_batch, data_candidates, sel_idx, clip=CLIP):
+def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, train_candidates, sel_idx_train, clip=CLIP):
+    '''
+        Train one epoch for one batch.
+    '''
+    #speaker.train(True)
+    #listener.train(True)
     # =========== Forward and backward propagation =================
     spk_loss_fun = NLLLoss()        # Use NLL for speaker
     
     spk_optimizer.zero_grad()
     lis_optimizer.zero_grad()
     
-    true_idx = torch.tensor(sel_idx)
+    true_idx = torch.tensor(sel_idx_train)
 
             # =========== Forward process =======
-    msg, mask, spk_log_prob = speaker(data_batch)
-    lg_lis_pred_prob, lis_pred_prob = listener(data_candidates, msg, mask)
+    msg, mask, spk_log_prob = speaker(train_batch)
+    lg_lis_pred_prob, lis_pred_prob = listener(train_candidates, msg, mask)   
     
-    msg_translator(msg.transpose(0,1)[0],vocab_table_full,padding=True)
-    
-    
-    reward = (true_idx==lis_pred_prob.argmax(dim=1)).sum()  # Reward is the number of correct guesses in a batch
+    pred_idx = lis_pred_prob.argmax(dim=1)
+    reward = cal_correct_preds(train_batch, train_candidates, pred_idx)
+    #reward = (true_idx==lis_pred_prob.argmax(dim=1)).sum()  # Reward is the number of correct guesses in a batch
     
             # ========== Perform backpropatation ======
     if MSG_MODE == 'REINFORCE':
@@ -89,17 +76,38 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, data_batch, dat
     return reward
 
 
+def valid_cal(speaker, listener, valid_full, valid_candidates):
+    '''
+        Use valid data batch to see the accuracy for validation. 
+    '''
+    speaker.train(False)
+    listener.train(False)
 
+    msg, mask, spk_log_prob = speaker(valid_full)
+    lg_lis_pred_prob, lis_pred_prob = listener(valid_candidates, msg, mask)
+    
+    pred_idx = lis_pred_prob.argmax(dim=1)
+    val_acc = cal_correct_preds(valid_full, valid_candidates, pred_idx)    
+    
+    return val_acc/valid_full.shape[0]
+    
 
-
-
-
+rewards = []
+comp_ps = []
+comp_ss = []
 for i in range(500):
-    reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, data_batch, data_candidates, sel_idx, clip=CLIP)
-    print(reward)
+    print('=====Round %d'%i)
+    reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, train_candidates, sel_idx_train, clip=CLIP)
+    rewards.append(reward)
+    if i%5 ==0:
+        all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+        comp_p, comp_s = compos_cal(all_msgs)
+        comp_ps.append(comp_p)
+        comp_ss.append(comp_s)
+    
+    
 
-
-
-
+#all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+#comp_p, comp_s = compos_cal(all_msgs)
 
 
