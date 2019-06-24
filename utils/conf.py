@@ -21,7 +21,7 @@ from torch import autograd
 '''
 for training model
 '''
-DEVICE = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
 LEARNING_RATE = 1e-3 # learning rate
 DROPOUT_RATIO = 0.2
 CLIP = 50.0 # max after clipping gradients
@@ -63,7 +63,7 @@ SOS_TOKEN = 'SOS' # Start-of-sequence token
 SOS_INDEX = 1  # SOS token index
 EOS_TOKEN = 'EOS' # End-of-sequence token
 EOS_INDEX = 2 # EOS token index
-NUM_WORD = 6 # Number of different characters
+NUM_WORD = 3 # Number of different characters
 MAX_LEN_WORD = 10 # Maximum length of a single kind of word
 MAX_LENGTH = NUM_WORD * MAX_LEN_WORD # Max length of whole sequence
 
@@ -75,7 +75,7 @@ ATTRI_SIZE = 3          # Number of attributes, i.e., number of digits
 NUM_SYSTEM = 10         # Number system, usually just use decimal
 HIDDEN_SIZE = 55       
 BATCH_SIZE = 100
-MSG_MAX_LEN = NUM_WORD + 2      # Controlled by ourselves
+MSG_MAX_LEN = NUM_WORD + 0      # Controlled by ourselves
 VALID_RATIO = 0.1       # Ratio of valid set to train set
 
 
