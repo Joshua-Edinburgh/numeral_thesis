@@ -53,7 +53,7 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, tr
     true_idx = torch.tensor(sel_idx_train).to(DEVICE)
 
             # =========== Forward process =======
-    msg, mask, spk_log_prob = speaker(train_batch)
+    msg, mask, spk_log_prob, entropy = speaker(train_batch)
     lg_lis_pred_prob, lis_pred_prob = listener(train_candidates, msg, mask)   
     
     pred_idx = lis_pred_prob.argmax(dim=1)
@@ -61,10 +61,10 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, tr
     
             # ========== Perform backpropatation ======
     if MSG_MODE == 'REINFORCE':
-        spk_loss = (-reward_vector.detach() * spk_log_prob).mean() + 0.1*(torch.exp(spk_log_prob)*spk_log_prob).mean()
+        spk_loss = (-reward_vector.detach() * spk_log_prob - 0.1*entropy).mean()
         spk_loss.backward()
     
-    lis_loss = lis_loss_fun(lg_lis_pred_prob, true_idx.long().detach()) + 0.01*(lis_pred_prob*lg_lis_pred_prob)
+    lis_loss = lis_loss_fun(lg_lis_pred_prob, true_idx.long().detach())
     lis_loss.mean().backward()
 
             # Clip gradients: gradients are modified in place

@@ -23,13 +23,11 @@ from torch.distributions.relaxed_categorical import RelaxedOneHotCategorical
 
 def cat_softmax(probs, mode, tau=1, hard=False, dim=-1):
     if mode == 'REINFORCE':
-        cat_distr = OneHotCategorical(probs=probs)
-        return cat_distr.sample()
+        cat_distr = OneHotCategorical(probs=probs)       
+        return cat_distr.sample(), cat_distr.entropy()
     elif mode == 'GUMBEL':
         cat_distr = RelaxedOneHotCategorical(tau, probs=probs)
         y_soft = cat_distr.rsample()
-    elif mode == 'SOFTMAX':
-        y_soft = probs
     
     if hard:
         # Straight through.
@@ -39,7 +37,7 @@ def cat_softmax(probs, mode, tau=1, hard=False, dim=-1):
     else:
         # Reparametrization trick.
         ret = y_soft
-    return ret
+    return ret, cat_distr.entropy()
 
 def weight_init(m):
     if isinstance(m, nn.Parameter):
@@ -109,13 +107,14 @@ class MsgGenLSTM(nn.Module):
         '''
             The size of h_0 and c_0 is [N_B, 1, hidden], we should firstly convert 
             them to [N_B, hidden]
-        '''
+        '''        
         batch_size = h_0.size(0)
         decoder_input = self.init_input.expand(batch_size, -1)
         decoder_hidden = h_0.squeeze(1)
         decoder_cell = c_0.squeeze(1)
         message = []
         mask = []
+        entropy = torch.zeros((batch_size,))
         
         _mask = torch.ones((1, batch_size), device=DEVICE)
         log_probs = 0.        
@@ -126,9 +125,8 @@ class MsgGenLSTM(nn.Module):
                 self.lstm(decoder_input, (decoder_hidden, decoder_cell))
             probs = F.softmax(self.out(decoder_hidden), dim=1)
  
-            
             if self.training:
-                predict = cat_softmax(probs, mode=MSG_MODE, tau=MSG_TAU, hard=MSG_HARD, dim=1)
+                predict, entropy = cat_softmax(probs, mode=MSG_MODE, tau=MSG_TAU, hard=MSG_HARD, dim=1)
             else:
                 predict = F.one_hot(torch.argmax(probs, dim=1),
                                     num_classes=self.output_size).to(_mask.dtype)
@@ -142,7 +140,7 @@ class MsgGenLSTM(nn.Module):
         message = torch.stack(message)           # Shape [MSG_MAX_LEN, N_B, MSG_VOCSIZE+1]
         mask = torch.stack(mask).transpose(1,2)  # Shape [MSG_MAX_LEN, N_B, 1]
         
-        return message, mask, log_probs
+        return message, mask, log_probs, entropy
 
 
 
@@ -244,9 +242,9 @@ class SpeakingAgent(nn.Module):
 
     def forward(self, data_batch):
         data_embs = self.encoder.forward(data_batch)
-        msg, mask, log_prob = self.msg_generator.forward(data_embs, data_embs)
+        msg, mask, log_prob, entropy = self.msg_generator.forward(data_embs, data_embs)
 
-        return msg, mask, log_prob
+        return msg, mask, log_prob, entropy
 
     def reset_params(self):
         self.apply(weight_init)
