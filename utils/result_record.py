@@ -95,6 +95,7 @@ def msg_generator(speaker, object_list, vocab_table_full, padding=True):
         Padding is to control whether msg have the same length.
     '''
     with torch.no_grad():
+        speaker.eval()
         all_msg = {}
         
         all_batch = np.asarray(object_list)

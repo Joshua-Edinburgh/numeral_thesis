@@ -75,6 +75,9 @@ def batch_data_gen():
         one_batch['data'] = np.asarray(tmp_list)
         batch_list.append(one_batch)
     return batch_list
+
+
+
 '''
 batch_list = batch_data_gen()
 data = []

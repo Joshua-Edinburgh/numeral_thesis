@@ -22,7 +22,7 @@ from torch.distributions.relaxed_categorical import RelaxedOneHotCategorical
 
 
 def cat_softmax(probs, mode, tau=1, hard=False, dim=-1):
-    if mode == 'REINFORCE':
+    if mode == 'REINFORCE' or mode == 'SCST':
         cat_distr = OneHotCategorical(probs=probs)       
         return cat_distr.sample(), cat_distr.entropy()
     elif mode == 'GUMBEL':
@@ -37,7 +37,7 @@ def cat_softmax(probs, mode, tau=1, hard=False, dim=-1):
     else:
         # Reparametrization trick.
         ret = y_soft
-    return ret, cat_distr.entropy()
+    return ret, ret
 
 def weight_init(m):
     if isinstance(m, nn.Parameter):
@@ -126,7 +126,7 @@ class MsgGenLSTM(nn.Module):
             probs = F.softmax(self.out(decoder_hidden), dim=1)
  
             if self.training:
-                predict, entropy = cat_softmax(probs, mode=MSG_MODE, tau=MSG_TAU, hard=MSG_HARD, dim=1)
+                predict, entropy = cat_softmax(probs, mode=MSG_MODE, tau=args.tau, hard=MSG_HARD, dim=1)
             else:
                 predict = F.one_hot(torch.argmax(probs, dim=1),
                                     num_classes=self.output_size).to(_mask.dtype)
