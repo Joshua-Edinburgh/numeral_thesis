@@ -94,11 +94,12 @@ def msg_generator(speaker, object_list, vocab_table_full, padding=True):
         Use this function to generate messages for all items in object_list. 
         Padding is to control whether msg have the same length.
     '''
-    speaker.train(False)
+    speaker.eval()
     all_msg = {}
     
     all_batch = np.asarray(object_list)
     msgs, _, _ = speaker(all_batch)
+
     msgs = msgs.transpose(0,1)
     for i in range(msgs.shape[0]):
         key = num_to_tup(object_list[i])
