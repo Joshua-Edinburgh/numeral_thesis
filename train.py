@@ -45,7 +45,8 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, tr
     #speaker.train(True)
     #listener.train(True)
     # =========== Forward and backward propagation =================
-    lis_loss_fun = NLLLoss()        # Use NLL for speaker
+    #lis_loss_fun = NLLLoss()        # Use NLL for speaker
+    lis_loss_fun = nn.CrossEntropyLoss()
     
     spk_optimizer.zero_grad()
     lis_optimizer.zero_grad()
@@ -54,18 +55,21 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, tr
 
             # =========== Forward process =======
     msg, mask, spk_log_prob, entropy = speaker(train_batch)
-    lg_lis_pred_prob, lis_pred_prob = listener(train_candidates, msg, mask)   
+    #lg_lis_pred_prob, lis_pred_prob = listener(train_candidates, msg, mask) 
+    pred_vector = listener(train_candidates, msg, mask)    
+    pred_idx = F.softmax(pred_vector).argmax(dim=1)
     
-    pred_idx = lis_pred_prob.argmax(dim=1)
     reward, reward_vector = cal_correct_preds(train_batch, train_candidates, pred_idx)
     
             # ========== Perform backpropatation ======
     if MSG_MODE == 'REINFORCE':
-        spk_loss = (-reward_vector.detach() * spk_log_prob - 0.1*entropy).mean()
+        spk_loss = -((reward_vector.detach()*spk_log_prob).mean() + 0.1*entropy.mean())
         spk_loss.backward()
     
-    lis_loss = lis_loss_fun(lg_lis_pred_prob, true_idx.long().detach())
-    lis_loss.mean().backward()
+    #lis_loss = lis_loss_fun(lg_lis_pred_prob, true_idx.long().detach()).mean()
+    #lis_loss.backward()
+    lis_loss = lis_loss_fun(pred_vector, true_idx.long().detach())
+    lis_loss.backward()
 
             # Clip gradients: gradients are modified in place
     nn.utils.clip_grad_norm_(speaker.parameters(), clip)
@@ -92,16 +96,17 @@ def valid_cal(speaker, listener, valid_full, valid_candidates):
     '''
         Use valid data batch to see the accuracy for validation. 
     '''
-    speaker.eval()
-    listener.eval()
-
-    msg, mask, spk_log_prob = speaker(valid_full)
-    lg_lis_pred_prob, lis_pred_prob = listener(valid_candidates, msg, mask)
-    lis_pred_prob.detach()
-    pred_idx = lis_pred_prob.argmax(dim=1)
-    val_acc, _ = cal_correct_preds(valid_full, valid_candidates, pred_idx.detach())    
+    with torch.no_grad():
+        #speaker.eval()
+        #listener.eval()
     
-    return val_acc/valid_full.shape[0]
+        msg, mask, spk_log_prob, entropy = speaker(valid_full)
+        pred_vector = listener(valid_candidates, msg, mask)
+    
+        pred_idx = F.softmax(pred_vector).argmax(dim=1)
+        val_acc, _ = cal_correct_preds(valid_full, valid_candidates, pred_idx)    
+    
+        return val_acc/valid_full.shape[0]
     
 
 
@@ -110,7 +115,7 @@ rewards = []
 comp_ps = []
 comp_ss = []
 valid_accs = []
-for i in range(1000):
+for i in range(2000):
     print('==============Round %d ==============='%i)
     #j = np.mod(i,2)
     j = 0
@@ -119,24 +124,26 @@ for i in range(1000):
                              train_batch, train_candidates, sel_idx_train)    
     rewards.append(reward)
     print(reward, spk_loss, lis_loss)
-   
-    if i%10 == 0:
-        #all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
-        #comp_p, comp_s = compos_cal(all_msgs)
-        #valid_acc = valid_cal(speaker, listener, valid_full, valid_candidates)        
-        #print('Valid acc is %4f'%valid_acc)        
+
+ 
+    if i%10 == 1:
+        all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+        comp_p, comp_s = compos_cal(all_msgs)
+        valid_acc = valid_cal(speaker, listener, valid_full, valid_candidates)        
+        print('Valid acc is %4f'%valid_acc)        
         print('Train acc is %d'%reward)
-        #valid_accs.append(valid_acc)
-        #comp_ps.append(comp_p)
-        #comp_ss.append(comp_s)
-'''
-    if i%500 == 250:
+        valid_accs.append(valid_acc)
+        comp_ps.append(comp_p)
+        comp_ss.append(comp_s)
+''' 
+    if i%1000 == 500:
         listener = ListeningAgent().to(DEVICE)
         lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
-    if i%500 == 0:
+
+    if i%1000 == 0:
         speaker = SpeakingAgent().to(DEVICE)
         spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
- ''' 
+''' 
 
 '''
 # ============= Iterated method 1: regularly initialize listener ==============

@@ -207,6 +207,8 @@ class PredictorMLP(nn.Module):
         self.lin = nn.Sequential(
             nn.Linear(2*hidden_size, hidden_size),  # We concatenate two vectors
             nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),  # We concatenate two vectors
+            nn.ReLU(),
             nn.Linear(hidden_size, 1)
         )
         
@@ -225,10 +227,10 @@ class PredictorMLP(nn.Module):
         
         cat_vectors = torch.cat((emb_candidates, hid_candidates), dim=2) # Concatenate to get shape [N_B, SEL_CANDID, 2*Hidden]
         pred_vector = self.lin(cat_vectors).squeeze(-1)     # Shape should be [N_B, SEL_CANDID]
-        pred_prob = F.softmax(pred_vector)
-        lg_pred_prob = F.log_softmax(pred_vector)
-        
-        return lg_pred_prob, pred_prob
+        #pred_prob = F.softmax(pred_vector)
+        #lg_pred_prob = F.log_softmax(pred_vector)        
+        #return lg_pred_prob, pred_prob
+        return pred_vector
         
         
 class SpeakingAgent(nn.Module):
@@ -260,9 +262,10 @@ class ListeningAgent(nn.Module):
     
     def forward(self, data_candidates, msg, mask):
         last_hidden, _ = self.msg_decoder.forward(msg, mask)
-        lg_pred_prob, pred_prob = self.predictor.forward(last_hidden, data_candidates)
-        
-        return lg_pred_prob, pred_prob
+        #lg_pred_prob, pred_prob = self.predictor.forward(last_hidden, data_candidates)
+        #return lg_pred_prob, pred_prob
+        pred_vector = self.predictor.forward(last_hidden, data_candidates)
+        return pred_vector
 
     def reset_params(self):
         self.apply(weight_init)

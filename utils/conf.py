@@ -18,6 +18,17 @@ from torch import optim
 import torch.nn.functional as F
 from torch import autograd
 
+def setup_seed(seed):
+     torch.manual_seed(seed)
+     torch.cuda.manual_seed_all(seed)
+     np.random.seed(seed)
+     random.seed(seed)
+     torch.backends.cudnn.deterministic = True
+
+setup_seed(12345)   # 12345 is valid for N_B=100, SEL_CAN = 5
+
+
+
 '''
 for training model
 '''
