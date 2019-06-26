@@ -22,6 +22,32 @@ def valid_list(low, high, num):
             s.append(x)    
     return s
 
+
+def gen_distinct_candidates(tgt_list, train_list, candi_size = SEL_CANDID):
+    '''
+        tgt_list may contain part of elements in train_list
+        output the (data_candidates, sel_idx)
+    '''
+    batch_size = len(tgt_list)
+    data_candidates = np.zeros((batch_size, candi_size))
+    sel_idx = []
+    for i in range(batch_size):
+        tmp_idx = np.random.randint(0, candi_size)
+        sel_idx.append(tmp_idx)
+        for j in range(candi_size):
+            if j == 0:
+                data_candidates[i,j]=tgt_list[i]
+                continue
+            rand_candi = random.choice(train_list)
+            while (rand_candi in data_candidates[i,:]):
+                rand_candi = random.choice(train_list)
+            data_candidates[i, j] = rand_candi
+        data_candidates[i, 0] = data_candidates[i, tmp_idx]
+        data_candidates[i, tmp_idx] = tgt_list[i]
+    
+    return data_candidates, np.asarray(sel_idx)
+
+
 def gen_candidates(low, high, valid_list, batch = BATCH_SIZE, candi = SEL_CANDID, train=True):
     if train == True:
         s = []
@@ -64,8 +90,7 @@ def batch_data_gen():
     for i in range(num_batches):
         one_batch = {}
         tmp_list = train_list[i*BATCH_SIZE:(i+1)*BATCH_SIZE]
-        sel_idx_train = np.random.randint(0, SEL_CANDID,(BATCH_SIZE,))
-        train_candidates = gen_candidates(0, NUM_SYSTEM**ATTRI_SIZE, valid_list, train=True)
+        train_candidates, sel_idx_train = gen_distinct_candidates(tmp_list, train_list)
         data_batch = np.zeros((BATCH_SIZE,))
         for i in range(BATCH_SIZE):
             train_candidates[i,sel_idx_train[i]] = tmp_list[i]
@@ -76,12 +101,31 @@ def batch_data_gen():
         batch_list.append(one_batch)
     return batch_list
 
+def shuffle_batch(batch_list):
+    '''
+        Shuffle the order of data in the same batch.
+    '''
+    shuf_batch_list = []
+    for j in range(len(batch_list)):
+        tmp_batch = {}
+        train_batch, train_candidates, sel_idx_train = batch_list[j]['data'], batch_list[j]['candidates'], batch_list[j]['sel_idx']
+        train_batch
+        tmp = np.concatenate((train_batch.reshape((-1,1)),
+                              train_candidates,
+                              sel_idx_train.reshape((-1,1))),axis=1)
+        np.random.shuffle(tmp)
+        tmp_batch['data'] = tmp[:,0]
+        tmp_batch['candidates'] = tmp[:,1:-1]
+        tmp_batch['sel_idx'] = tmp[:,-1]
+        shuf_batch_list.append(tmp_batch)
+    return shuf_batch_list
+        
+        
 
 
-'''
+
 batch_list = batch_data_gen()
-data = []
-for i in range(4):
-    data.append(set(batch_list[i]['data']))
-data[0].intersection(data[1])
-'''
+shuf_batch_list = shuffle_batch(batch_list)
+batch_list = batch_data_gen()
+
+

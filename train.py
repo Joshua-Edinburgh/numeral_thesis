@@ -64,34 +64,35 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, tr
     true_idx = torch.tensor(sel_idx_train).to(DEVICE)
 
             # =========== Forward process =======
-    msg, mask, spk_log_prob, entropy = speaker(train_batch)
-    pred_vector = listener(train_candidates, msg, mask)    
+    msg, spk_log_prob, spk_entropy = speaker(train_batch)
+    pred_vector = listener(train_candidates, msg)  
+    lis_entropy = -(F.softmax(pred_vector)*F.log_softmax(pred_vector)).sum(dim=1)    
+    lis_log_prob = F.log_softmax(pred_vector.max(dim=1)[0])
+    
     pred_idx = F.softmax(pred_vector).argmax(dim=1)
-    
     reward, reward_vector = cal_correct_preds(train_batch, train_candidates, pred_idx)
-
-
-    
+ 
             # ========== Perform backpropatation ======
-    lis_loss = lis_loss_fun(pred_vector, true_idx.long().detach())
+    #lis_loss = lis_loss_fun(pred_vector, true_idx.long().detach())
+    lis_loss = -((reward_vector.detach()*lis_log_prob).mean() + 0.05*lis_entropy.mean())
     lis_loss.backward()
     
     if MSG_MODE == 'REINFORCE':
-        spk_loss = -((reward_vector.detach()*spk_log_prob).mean() + 0.1*entropy.mean())
+        spk_loss = -((reward_vector.detach()*spk_log_prob).mean() + 0.1*spk_entropy.mean())
         spk_loss.backward()
     elif MSG_MODE == 'SCST':
         speaker.eval()
         listener.eval()
         
-        msg_, mask_, spk_log_prob_, _ = speaker(train_batch)
-        pred_vector_ = listener(train_candidates, msg_, mask_)
+        msg_, spk_log_prob_, _ = speaker(train_batch)
+        pred_vector_ = listener(train_candidates, msg_)
         pred_idx_ = F.softmax(pred_vector_).argmax(dim=1)
         _, reward_vector_ = cal_correct_preds(train_batch, train_candidates, pred_idx_)
         
         speaker.train()
         listener.train()
         
-        spk_loss = -(((reward_vector.detach()-reward_vector_.detach())*spk_log_prob).mean() + 0.1*entropy.mean())
+        spk_loss = -(((reward_vector.detach()-reward_vector_.detach())*spk_log_prob).mean() + 0.1*spk_entropy.mean())
         spk_loss.backward()                    
     elif MSG_MODE == 'GUMBEL':
         spk_loss = lis_loss
@@ -124,8 +125,8 @@ def valid_cal(speaker, listener, valid_full, valid_candidates):
     with torch.no_grad():  
         speaker.eval()
         listener.eval()
-        msg, mask, spk_log_prob, entropy = speaker(valid_full)
-        pred_vector = listener(valid_candidates, msg, mask)
+        msg, spk_log_prob, spk_entropy = speaker(valid_full)
+        pred_vector = listener(valid_candidates, msg)
     
         pred_idx = F.softmax(pred_vector).argmax(dim=1)
         val_acc, _ = cal_correct_preds(valid_full, valid_candidates, pred_idx)    
@@ -138,9 +139,10 @@ comp_ps = []
 comp_ss = []
 msg_types = []
 valid_accs = []
-for i in range(2000):
+for i in range(5000):
     print('==============Round %d ==============='%i)
     #j = np.mod(i,2)
+    batch_list = batch_data_gen()#shuffle_batch(batch_list)
     j = 0
     train_batch, train_candidates, sel_idx_train = batch_list[j]['data'], batch_list[j]['candidates'], batch_list[j]['sel_idx']
     reward, spk_loss, lis_loss = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
@@ -148,10 +150,10 @@ for i in range(2000):
     rewards.append(reward)
     print(reward, spk_loss, lis_loss)
 
-    
+    #if i%500 == 0: batch_list = batch_data_gen()
     if i%10 == 1:
         if i > 10:
-            best_acc = np.asarray(rewards[:-10:-1]).mean()/100
+            best_acc = np.asarray(rewards[:-10:-1]).mean()/25
             msg_tau_schedule(best_acc)
         all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
         msg_types.append(len(set(all_msgs.values())))
@@ -172,64 +174,8 @@ for i in range(2000):
         spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
 ''' 
 
-'''
-# ============= Iterated method 1: regularly initialize listener ==============
-rewards = []
-comp_ps = []
-comp_ss = []
-valid_accs = []
-for i in range(100):
-    train_batch, train_candidates, sel_idx_train, valid_full,valid_candidates, sel_idx_val = batch_data_gen()
-    print('==============Round %d ==============='%i)
-    reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
-                         train_batch, train_candidates, sel_idx_train, update='BOTH')
-    rewards.append(reward)    
-    if i%5 == 0:
-        all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
-        comp_p, comp_s = compos_cal(all_msgs)
-        valid_acc = valid_cal(speaker, listener, valid_full, valid_candidates)        
-        print('Valid acc is %4f'%valid_acc)
-        print('Train acc is %4f'%(rewards/BATCH_SIZE))
-        valid_accs.append(valid_acc)
-        comp_ps.append(comp_p)
-        comp_ss.append(comp_s)
 
-    if i%10 == 0:
-        listener.reset_params()
-        #listener = ListeningAgent().to(DEVICE)
-        #lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
- 
-'''    
-
-'''
-# ============= General trianing-valid procedure ====================
-rewards = []
-comp_ps = []
-comp_ss = []
-
-for i in range(1000):
-
-    batch_reward = 0
-    for j in range(len(batch_list)):
-        train_batch, train_candidates, sel_idx_train = batch_list[j]['data'], batch_list[j]['candidates'], batch_list[j]['sel_idx']
-        reward = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
-                             train_batch, train_candidates, sel_idx_train)
-        batch_reward += reward/len(batch_list)    
-    rewards.append(batch_reward)
-    if i%5 ==0:
-        all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
-        comp_p, comp_s = compos_cal(all_msgs)
-        valid_acc = valid_cal(speaker, listener, valid_full, valid_candidates)      
-        print('=====Round %d======='%i)
-        print('Valid acc is %4f'%valid_acc)
-        print('Train acc is %d'%batch_reward)
-        
-        comp_ps.append(comp_p)
-        comp_ss.append(comp_s)
-
- ''' 
 
 #all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
 #comp_p, comp_s = compos_cal(all_msgs)
-
 

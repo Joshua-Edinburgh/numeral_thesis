@@ -9,8 +9,8 @@ Created on Thu Jun 20 10:51:54 2019
 from utils.conf import *
 import pandas as pd
 
-vocab_table_full = [chr(97+int(v)) for v in range(27)]
-vocab_table_full[-1] = '@'
+vocab_table_full = [chr(97+int(v)) for v in range(26)]
+#vocab_table_full[-1] = '@'
 
 # concept1, concept2 = ('blue','box'), ('red','circle')
 # concept1, concept2 = ('blue','circle'), ('red','circle')
@@ -70,7 +70,7 @@ def one_msg_translator(one_msg, vocab_table_full, padding=True):
     '''
     max_len, vocab_len = one_msg.shape
     vocab_table = vocab_table_full[:vocab_len]
-    vocab_table[-1] = vocab_table_full[-1]
+    #vocab_table[-1] = vocab_table_full[-1]
     
     stop_flag = False
     sentence = []
@@ -99,7 +99,7 @@ def msg_generator(speaker, object_list, vocab_table_full, padding=True):
         all_msg = {}
         
         all_batch = np.asarray(object_list)
-        msgs, _, _, _ = speaker(all_batch)
+        msgs, _, _ = speaker(all_batch)
     
         msgs = msgs.transpose(0,1)
         for i in range(msgs.shape[0]):

@@ -13,12 +13,9 @@ from torch.distributions.categorical import Categorical
 from torch.distributions.one_hot_categorical import OneHotCategorical
 from torch.distributions.relaxed_categorical import RelaxedOneHotCategorical
 
-
-
 # ======== Test for data generation =========
 #data_batch = np.random.randint(0, 10**ATTRI_SIZE-1, (BATCH_SIZE, 1))
 #data_candidates = np.random.randint(0, 10**ATTRI_SIZE-1, (BATCH_SIZE, SEL_CANDID))
-
 
 
 def cat_softmax(probs, mode, tau=1, hard=False, dim=-1):
@@ -58,9 +55,7 @@ class DataEncoderMLP(nn.Module):
         self.emb_size = ATTRI_SIZE*NUM_SYSTEM
 
         self.lin = nn.Sequential(
-            nn.Linear(self.emb_size, hidden_size),  # We concatenate two vectors
-            nn.ReLU(),
-            nn.Linear(hidden_size, hidden_size)
+            nn.Linear(self.emb_size, hidden_size)  # We concatenate two vectors
         )    
         
     def gen_embedding(self, data_batch):
@@ -92,7 +87,7 @@ class MsgGenLSTM(nn.Module):
         msg_gen = MsgGenLSTM()
         msg, mask, log = msg_gen.forward(h0, h0)
     '''
-    def __init__(self, voc_size = MSG_VOCSIZE + 1, hidden_size=HIDDEN_SIZE):
+    def __init__(self, voc_size = MSG_VOCSIZE, hidden_size=HIDDEN_SIZE):
         super(MsgGenLSTM, self).__init__()
         self.hidden_size = hidden_size
         self.input_size = voc_size
@@ -109,38 +104,36 @@ class MsgGenLSTM(nn.Module):
             them to [N_B, hidden]
         '''        
         batch_size = h_0.size(0)
-        decoder_input = self.init_input.expand(batch_size, -1)
+        #decoder_input = self.init_input.expand(batch_size, -1)
+        decoder_input = torch.zeros((batch_size,self.input_size))
         decoder_hidden = h_0.squeeze(1)
         decoder_cell = c_0.squeeze(1)
         message = []
-        mask = []
         entropy = torch.zeros((batch_size,))
         
-        _mask = torch.ones((1, batch_size), device=DEVICE)
         log_probs = 0.        
 
         for _ in range(MSG_MAX_LEN):
-            mask.append(_mask)
             decoder_hidden, decoder_cell = \
                 self.lstm(decoder_input, (decoder_hidden, decoder_cell))
+            
             probs = F.softmax(self.out(decoder_hidden), dim=1)
  
             if self.training:
                 predict, entropy = cat_softmax(probs, mode=MSG_MODE, tau=args.tau, hard=MSG_HARD, dim=1)
             else:
                 predict = F.one_hot(torch.argmax(probs, dim=1),
-                                    num_classes=self.output_size).to(_mask.dtype)
+                                    num_classes=self.output_size).float()
 
-            log_probs += torch.log((probs * predict).sum(dim=1)) * _mask.squeeze()
-            _mask = _mask * (1 - predict[:, -1])        # The last position is EOS
+            log_probs += torch.log((probs * predict).sum(dim=1))
+            #_mask = _mask * (1 - predict[:, -1])        # The last position is EOS
             
             message.append(predict)
             decoder_input = predict
         
         message = torch.stack(message)           # Shape [MSG_MAX_LEN, N_B, MSG_VOCSIZE+1]
-        mask = torch.stack(mask).transpose(1,2)  # Shape [MSG_MAX_LEN, N_B, 1]
         
-        return message, mask, log_probs, entropy
+        return message, log_probs, entropy
 
 
 
@@ -153,7 +146,7 @@ class MsgDecoderLSTM(nn.Module):
         msg_de = MsgDecoderLSTM()
         last_hidden, last_hidden = msg_de.forward(msg, mask)
     '''
-    def __init__(self, input_size = MSG_VOCSIZE+1, hidden_size=HIDDEN_SIZE):
+    def __init__(self, input_size = MSG_VOCSIZE, hidden_size=HIDDEN_SIZE):
         super(MsgDecoderLSTM, self).__init__()
         self.hidden_size = hidden_size
         self.input_size = input_size
@@ -162,7 +155,7 @@ class MsgDecoderLSTM(nn.Module):
         self.init_hidden = self.init_hidden_and_cell()
         self.init_cell = self.init_hidden_and_cell()        
 
-    def forward(self, msg, mask):
+    def forward(self, msg):
         max_len = msg.size(0)
         batch_size = msg.size(1)    # msg shape: [MSG_MAX_LEN, N_B, MSG_VOCSIZE+1]
 
@@ -171,13 +164,13 @@ class MsgDecoderLSTM(nn.Module):
 
         for t in range(max_len):
             hidden, cell = self.lstm(msg[t], (last_hidden, last_cell))
-            last_hidden = mask[t] * hidden + (1 - mask[t]) * last_hidden
-            last_cell = mask[t] * cell + (1 - mask[t]) * last_cell          
+            last_hidden = hidden
+            last_cell = cell       
         
         return last_hidden, last_cell
         
     def init_hidden_and_cell(self):
-        return nn.Parameter(torch.zeros(1, self.hidden_size, device=DEVICE))        
+        return torch.zeros(1, self.hidden_size, device=DEVICE)     
 
 
 class PredictorMLP(nn.Module):
@@ -199,17 +192,16 @@ class PredictorMLP(nn.Module):
         last_hidden, _ = msg_de.forward(msg, mask)   
         pred_prob = pred_MLP.forward(last_hidden, data_candidates)  
     '''
-    def __init__(self, hidden_size=HIDDEN_SIZE):
+    def __init__(self, hidden_size=HIDDEN_SIZE, cand_size=SEL_CANDID):
         super(PredictorMLP, self).__init__()
         self.hidden_size = hidden_size
+        self.cand_size = cand_size
         self.data_encoder = DataEncoderMLP()
                 
         self.lin = nn.Sequential(
-            nn.Linear(2*hidden_size, hidden_size),  # We concatenate two vectors
-            nn.ReLU(),
-            nn.Linear(hidden_size, hidden_size),  # We concatenate two vectors
-            nn.ReLU(),
-            nn.Linear(hidden_size, 1)
+            nn.Linear(hidden_size, hidden_size)  # We concatenate two vectors
+            #nn.ReLU(),
+            #nn.Linear(hidden_size, hidden_size),  # We concatenate two vectors
         )
         
     def forward(self,lis_hidden, data_candidates):
@@ -218,15 +210,15 @@ class PredictorMLP(nn.Module):
             data_candidates: [N_B, SEL_CANDID]
         '''
         emb_candidates = []
-        for i_cand in range(SEL_CANDID):
+        for i_cand in range(self.cand_size):
             tmp_emb = self.data_encoder.forward(data_candidates[:,i_cand]).squeeze(1) # To shape [N_B, Hidden]
             emb_candidates.append(tmp_emb)
         emb_candidates = torch.stack(emb_candidates).transpose(0,1) # To shape [N_B, SEL_CANDID, Hidden]        
         
-        hid_candidates = lis_hidden.unsqueeze(1).expand(-1, SEL_CANDID, -1)   # Expand to the same shape
-        
-        cat_vectors = torch.cat((emb_candidates, hid_candidates), dim=2) # Concatenate to get shape [N_B, SEL_CANDID, 2*Hidden]
-        pred_vector = self.lin(cat_vectors).squeeze(-1)     # Shape should be [N_B, SEL_CANDID]
+        emb_hidden = self.lin(lis_hidden).unsqueeze(-1)
+        candi_dot_hid = torch.bmm(emb_candidates, emb_hidden).squeeze(-1)      
+       
+        pred_vector = candi_dot_hid     # Shape should be [N_B, SEL_CANDID]
         #pred_prob = F.softmax(pred_vector)
         #lg_pred_prob = F.log_softmax(pred_vector)        
         #return lg_pred_prob, pred_prob
@@ -234,7 +226,7 @@ class PredictorMLP(nn.Module):
         
         
 class SpeakingAgent(nn.Module):
-    def __init__(self, voc_size = MSG_VOCSIZE+1, hidden_size=HIDDEN_SIZE):
+    def __init__(self, voc_size = MSG_VOCSIZE, hidden_size=HIDDEN_SIZE):
         super().__init__()
         self.voc_size = voc_size
         self.hidden_size = hidden_size
@@ -244,26 +236,25 @@ class SpeakingAgent(nn.Module):
 
     def forward(self, data_batch):
         data_embs = self.encoder.forward(data_batch)
-        msg, mask, log_prob, entropy = self.msg_generator.forward(data_embs, data_embs)
+        msg, log_prob, entropy = self.msg_generator.forward(data_embs, data_embs)
 
-        return msg, mask, log_prob, entropy
+        return msg, log_prob, entropy
 
     def reset_params(self):
         self.apply(weight_init)
 
 class ListeningAgent(nn.Module):
-    def __init__(self, voc_size = MSG_VOCSIZE+1, hidden_size=HIDDEN_SIZE):
+    def __init__(self, voc_size = MSG_VOCSIZE, hidden_size=HIDDEN_SIZE, cand_size=SEL_CANDID):
         super().__init__()
         self.voc_size = voc_size
         self.hidden_size = hidden_size
+        self.cand_size = cand_size
 
-        self.predictor = PredictorMLP(self.hidden_size)
+        self.predictor = PredictorMLP(self.hidden_size, self.cand_size)
         self.msg_decoder = MsgDecoderLSTM(self.voc_size, self.hidden_size)
     
-    def forward(self, data_candidates, msg, mask):
-        last_hidden, _ = self.msg_decoder.forward(msg, mask)
-        #lg_pred_prob, pred_prob = self.predictor.forward(last_hidden, data_candidates)
-        #return lg_pred_prob, pred_prob
+    def forward(self, data_candidates, msg):
+        last_hidden, _ = self.msg_decoder.forward(msg)
         pred_vector = self.predictor.forward(last_hidden, data_candidates)
         return pred_vector
 
