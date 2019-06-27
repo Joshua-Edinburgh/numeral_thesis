@@ -122,8 +122,7 @@ class MsgGenLSTM(nn.Module):
             if self.training:
                 predict, entropy = cat_softmax(probs, mode=MSG_MODE, tau=args.tau, hard=MSG_HARD, dim=1)
             else:
-                predict = F.one_hot(torch.argmax(probs, dim=1),
-                                    num_classes=self.output_size).float()
+                predict = F.one_hot(torch.argmax(probs, dim=1),num_classes=self.output_size).float()
 
             log_probs += torch.log((probs * predict).sum(dim=1))
             #_mask = _mask * (1 - predict[:, -1])        # The last position is EOS

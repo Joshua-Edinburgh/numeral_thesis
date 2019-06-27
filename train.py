@@ -139,7 +139,7 @@ comp_ps = []
 comp_ss = []
 msg_types = []
 valid_accs = []
-for i in range(5000):
+for i in range(50000):
     print('==============Round %d ==============='%i)
     #j = np.mod(i,2)
     batch_list = batch_data_gen()#shuffle_batch(batch_list)
@@ -164,8 +164,8 @@ for i in range(5000):
         #valid_accs.append(valid_acc)
         comp_ps.append(comp_p)
         comp_ss.append(comp_s)
-'''        
-    if i%1000 == 0:
+'''       
+    if i%6000 == 0:
         listener = ListeningAgent().to(DEVICE)
         lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
@@ -179,3 +179,6 @@ for i in range(5000):
 #all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
 #comp_p, comp_s = compos_cal(all_msgs)
 
+#plt.plot(with_reset,'g')
+#plt.plot(comp_ps)
+#plt.show()

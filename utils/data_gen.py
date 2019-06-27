@@ -123,9 +123,9 @@ def shuffle_batch(batch_list):
         
 
 
-
+'''
 batch_list = batch_data_gen()
 shuf_batch_list = shuffle_batch(batch_list)
 batch_list = batch_data_gen()
-
+'''
 
