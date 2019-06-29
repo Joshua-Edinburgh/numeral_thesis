@@ -34,7 +34,7 @@ setup_seed(12345)   # 12345 is valid for N_B=100, SEL_CAN = 5
 for training model
 '''
 DEVICE = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
-LEARNING_RATE = 1e-3 # learning rate
+LEARNING_RATE = 1e-4 # learning rate
 DROPOUT_RATIO = 0.2
 CLIP = 50.0 # max after clipping gradients
 TEACHER_FORCING_RATIO = 0.5
@@ -59,7 +59,7 @@ defaults = {
 '''
 hyperparameters of model
 '''
-SEL_CANDID = 10          # Number of candidate when selecting
+SEL_CANDID = 5          # Number of candidate when selecting
 ATTRI_SIZE = 2          # Number of attributes, i.e., number of digits
 NUM_SYSTEM = 5         # Number system, usually just use decimal
 HIDDEN_SIZE = 100       
@@ -67,6 +67,7 @@ BATCH_SIZE = 25
 MSG_MAX_LEN = ATTRI_SIZE + 0      # Controlled by ourselves
 VALID_RATIO = 0      # Ratio of valid set to train set
 
+ROUNDS = 2000
 # Size of vocabulary this is available for communication
 MSG_VOCSIZE = 11
 MSG_MODE = 'REINFORCE' # 'GUMBEL' or 'REINFORCE'

@@ -55,7 +55,8 @@ class DataEncoderMLP(nn.Module):
         self.emb_size = ATTRI_SIZE*NUM_SYSTEM
 
         self.lin = nn.Sequential(
-            nn.Linear(self.emb_size, hidden_size)  # We concatenate two vectors
+            nn.Linear(self.emb_size, hidden_size),  # We concatenate two vectors
+            nn.ReLU()
         )    
         
     def gen_embedding(self, data_batch):

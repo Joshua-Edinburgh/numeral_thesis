@@ -109,6 +109,16 @@ def msg_generator(speaker, object_list, vocab_table_full, padding=True):
         
         return all_msg
 
+def compos_cal_inner(msg, train_batch):
+    all_msg = {}
+    msg = msg.transpose(0,1)
+    for i in range(msg.shape[0]):
+        key = num_to_tup(train_batch[i])
+        value = one_msg_translator(msg[i], vocab_table_full, True)
+        all_msg[key] = value
+    comp_p, comp_s = compos_cal(all_msg)
+    return comp_p, comp_s
+    
 
 def compos_cal(msg):
     '''

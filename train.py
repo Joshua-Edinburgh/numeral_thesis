@@ -10,7 +10,7 @@ from utils.data_gen import *
 from utils.result_record import *
 from models.model import *
 from torch.nn import NLLLoss
-
+import matplotlib.pyplot as plt
 
 
 speaker = SpeakingAgent().to(DEVICE)
@@ -50,7 +50,8 @@ def cal_correct_preds(data_batch, data_candidate, pred_idx):
     return cnt_correct, idx_correct
 
 
-def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, train_candidates, sel_idx_train, update='BOTH', clip=CLIP):
+def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, train_candidates, 
+                sel_idx_train, rwd_comp = False, update='BOTH', clip=CLIP):
     '''
         Train one epoch for one batch.
     '''
@@ -67,10 +68,13 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, tr
     msg, spk_log_prob, spk_entropy = speaker(train_batch)
     pred_vector = listener(train_candidates, msg)  
     lis_entropy = -(F.softmax(pred_vector)*F.log_softmax(pred_vector)).sum(dim=1)    
-    lis_log_prob = F.log_softmax(pred_vector.max(dim=1)[0])
-    
+    lis_log_prob = F.log_softmax(pred_vector.max(dim=1)[0])    
     pred_idx = F.softmax(pred_vector).argmax(dim=1)
     reward, reward_vector = cal_correct_preds(train_batch, train_candidates, pred_idx)
+    
+    if rwd_comp == True:
+        comp_p, comp_s = compos_cal_inner(msg, train_batch)
+        reward_vector *= comp_p
  
             # ========== Perform backpropatation ======
     #lis_loss = lis_loss_fun(pred_vector, true_idx.long().detach())
@@ -132,8 +136,12 @@ def valid_cal(speaker, listener, valid_full, valid_candidates):
         val_acc, _ = cal_correct_preds(valid_full, valid_candidates, pred_idx)    
     
         return val_acc/valid_full.shape[0]
-    
-# ============= Iterated method 2: alternatively initialize spk and lis =======
+
+
+
+
+'''
+# ============= Iterated method 1: just re-initialize listener =======
 rewards = []
 comp_ps = []
 comp_ss = []
@@ -164,21 +172,119 @@ for i in range(50000):
         #valid_accs.append(valid_acc)
         comp_ps.append(comp_p)
         comp_ss.append(comp_s)
-'''       
+       
     if i%6000 == 0:
         listener = ListeningAgent().to(DEVICE)
         lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
-
-    if i%1000 == 0:
-        speaker = SpeakingAgent().to(DEVICE)
-        spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
 ''' 
+
+
+
+# ============= Iterated method 1: just re-initialize listener =======
+rewards = []
+comp_ps = []
+comp_ss = []
+msg_types = []
+valid_accs = []
+for i in range(100000):
+    print('==============Round %d ==============='%i)
+    #j = np.mod(i,2)
+    batch_list = batch_data_gen()#shuffle_batch(batch_list)
+    j = 0
+    train_batch, train_candidates, sel_idx_train = batch_list[j]['data'], batch_list[j]['candidates'], batch_list[j]['sel_idx']
+
+    reward, spk_loss, lis_loss = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
+                             train_batch, train_candidates, sel_idx_train, rwd_comp = False)    
+    rewards.append(reward)
+    print(reward, spk_loss, lis_loss)
+
+    if i%20==1:
+        all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+        msg_types.append(len(set(all_msgs.values())))
+        comp_p, comp_s = compos_cal(all_msgs)
+        comp_ps.append(comp_p)
+        comp_ss.append(comp_s)
+    if i%50000 == 0:
+        listener = ListeningAgent().to(DEVICE)
+        lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
+       
+''' 
+
+  
+# ============= Iterated method 2: two-phase method =======
+rewards = []
+comp_ps = []
+comp_ss = []
+msg_types = []
+valid_accs = []
+for i in range(10):
+#    batch_list = batch_data_gen()#shuffle_batch(batch_list)
+#    train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
+    ii,jj,kk = 0, 0, 0
+    # =============== Phase A,updating both ============================
+    for ii in range(ROUNDS*2):
+        batch_list = batch_data_gen()#shuffle_batch(batch_list)
+        train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']    
+        reward, spk_loss, lis_loss = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
+                                 train_batch, train_candidates, sel_idx_train, update='BOTH')    
+        rewards.append(reward)
+        print('Phase A, total round idx: %d, reward %d, spk_loss %.4f, lis_loss%.4f'%(i*ROUNDS+ii+jj+kk,reward, spk_loss, lis_loss))
+        if i%10 == 1:
+            all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+            msg_types.append(len(set(all_msgs.values())))
+            comp_p, comp_s = compos_cal(all_msgs)       
+            comp_ps.append(comp_p)
+            comp_ss.append(comp_s)
+
+    listener = ListeningAgent().to(DEVICE)
+    lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
+    # =============== Phase B,updating the listener ============================
+    for jj in range(ROUNDS):
+        batch_list = batch_data_gen()#shuffle_batch(batch_list)
+        train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
+        reward, spk_loss, lis_loss = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
+                                 train_batch, train_candidates, sel_idx_train, update='LISTENER')    
+        rewards.append(reward)        
+        print('Phase B, total round idx: %d, reward %d, spk_loss %.4f, lis_loss%.4f'%(i*ROUNDS+ii+jj+kk,reward, spk_loss, lis_loss))
+        if i%10 == 1:
+            all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+            msg_types.append(len(set(all_msgs.values())))
+            comp_p, comp_s = compos_cal(all_msgs)       
+            comp_ps.append(comp_p)
+            comp_ss.append(comp_s)
+    # =============== Phase C,updating speaker ============================
+    speaker = SpeakingAgent().to(DEVICE)
+    spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)    
+    for kk in range(ROUNDS):
+        batch_list = batch_data_gen()#shuffle_batch(batch_list)
+        train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
+        listener = ListeningAgent().to(DEVICE)
+        lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
+        reward, spk_loss, lis_loss = train_epoch(speaker, listener, spk_optimizer, lis_optimizer, 
+                                 train_batch, train_candidates, sel_idx_train, update='SPEAKER')    
+        rewards.append(reward)      
+        print('Phase C, total round idx: %d, reward %d, spk_loss %.4f, lis_loss%.4f'%(i*ROUNDS+ii+jj+kk,reward, spk_loss, lis_loss))
+        if i%10 == 1:
+            all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+            msg_types.append(len(set(all_msgs.values())))
+            comp_p, comp_s = compos_cal(all_msgs)       
+            comp_ps.append(comp_p)
+            comp_ss.append(comp_s)
+
+   '''   
+
 
 
 
 #all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
 #comp_p, comp_s = compos_cal(all_msgs)
-
-#plt.plot(with_reset,'g')
-#plt.plot(comp_ps)
-#plt.show()
+'''
+plt.plot(reward_true_compps,label='only reward')
+plt.plot(with_reset_50k,label='only reset 50k')
+plt.plot(with_reset_10k,label='only reset 10k')
+plt.plot(with_reset,label='only reset 6k')
+plt.plot(baseline,label='baseline')
+plt.legend()
+plt.ylim((0.4,0.8))
+plt.show()
+'''

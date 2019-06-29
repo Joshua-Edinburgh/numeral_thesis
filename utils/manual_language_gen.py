@@ -12,10 +12,10 @@ from utils.conf import *
 from utils.data_gen import *
 from utils.result_record import *
 
-   
+vocab_table_full = [chr(97+int(v)) for v in range(26)]
+
 char_mapping = ['a','b','c','d','e','f','g','h','i','j']
 #random.shuffle(char_mapping)
-char_mapping += '@'
 
 def key_to_value(key, char_mapping,comp = True):
     '''
@@ -23,9 +23,9 @@ def key_to_value(key, char_mapping,comp = True):
     '''
     tmp = ''.join([s for s in key])
     int_key = int(tmp)
-    dig_0 = np.mod(int_key, 10)
-    dig_1 = np.mod(int(int_key*0.1), 10)
-    dig_2 = np.mod(int(int_key*0.01), 10)
+    dig_0 = np.mod(int_key, NUM_SYSTEM)
+    dig_1 = np.mod(int(int_key/NUM_SYSTEM), NUM_SYSTEM)
+    dig_2 = np.mod(int(int_key/NUM_SYSTEM**2), NUM_SYSTEM)
     value = []
     if comp == True:
         value.append(char_mapping[dig_2])
