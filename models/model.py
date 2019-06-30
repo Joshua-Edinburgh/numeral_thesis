@@ -111,6 +111,7 @@ class MsgGenLSTM(nn.Module):
         decoder_cell = c_0.squeeze(1)
         message = []
         entropy = torch.zeros((batch_size,))
+        digits = []
         
         log_probs = 0.        
 
@@ -118,8 +119,10 @@ class MsgGenLSTM(nn.Module):
             decoder_hidden, decoder_cell = \
                 self.lstm(decoder_input, (decoder_hidden, decoder_cell))
             
-            probs = F.softmax(self.out(decoder_hidden), dim=1)
- 
+            digit = self.out(decoder_hidden)
+            digits.append(digit)
+            probs = F.softmax(digit, dim=1)
+            
             if self.training:
                 predict, entropy = cat_softmax(probs, mode=MSG_MODE, tau=args.tau, hard=MSG_HARD, dim=1)
             else:
@@ -132,8 +135,9 @@ class MsgGenLSTM(nn.Module):
             decoder_input = predict
         
         message = torch.stack(message)           # Shape [MSG_MAX_LEN, N_B, MSG_VOCSIZE+1]
+        digits = torch.stack(digits)
         
-        return message, log_probs, entropy
+        return message, log_probs, entropy, digits
 
 
 
@@ -236,9 +240,9 @@ class SpeakingAgent(nn.Module):
 
     def forward(self, data_batch):
         data_embs = self.encoder.forward(data_batch)
-        msg, log_prob, entropy = self.msg_generator.forward(data_embs, data_embs)
+        msg, log_prob, entropy, digits = self.msg_generator.forward(data_embs, data_embs)
 
-        return msg, log_prob, entropy
+        return msg, log_prob, entropy, digits
 
     def reset_params(self):
         self.apply(weight_init)
