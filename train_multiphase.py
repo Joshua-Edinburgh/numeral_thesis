@@ -49,7 +49,7 @@ def train_phaseA(speaker, spk_optimizer, data_for_spk, clip=CLIP):
     X = data_for_spk['data']
     Y = data_for_spk['msg']
     Y_hat = Y.transpose(0,1).argmax(dim=2)
-    msg, _, _, Y_hiddens = speaker(train_batch)
+    msg, _, _, Y_hiddens = speaker(X)
     spk_loss = spk_loss_fun(Y_hiddens.transpose(0,1).transpose(1,2), Y_hat)
     spk_loss.backward()
     nn.utils.clip_grad_norm_(speaker.parameters(), clip)
@@ -194,8 +194,7 @@ def valid_cal(speaker, listener, valid_full, valid_candidates):
         return val_acc/valid_full.shape[0]
 
 
-
-
+'''
 
 # ============= Iterated method 1: just re-initialize listener =======
 rewards = []
@@ -245,7 +244,7 @@ for i in range(8):
         print('Gen.%d @@PhaseA@@, round %d, acc is %.4f'%(i,a,acc))
 
    
-
+'''
 
 
 
