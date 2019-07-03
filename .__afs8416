@@ -195,7 +195,8 @@ def valid_cal(speaker, listener, valid_full, valid_candidates):
         return val_acc/valid_full.shape[0]
 
 
-'''
+
+
 
 # ============= Iterated method 1: just re-initialize listener =======
 rewards = []
@@ -253,7 +254,7 @@ for i in range(80):
         print(comp_ps[-1])
 
    
-'''
+
 
 
 

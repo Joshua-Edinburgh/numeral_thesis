@@ -69,7 +69,11 @@ VALID_RATIO = 0      # Ratio of valid set to train set
 
 ROUNDS = 2000
 # Size of vocabulary this is available for communication
+<<<<<<< HEAD
 MSG_VOCSIZE = 5
+=======
+MSG_VOCSIZE = 10
+>>>>>>> f0bd1b6a7e9cd6a4d5563eb95b93e2a1342b2347
 MSG_MODE = 'REINFORCE' # 'GUMBEL' or 'REINFORCE'
 MSG_HARD = True # Discretized as one-hot vectors
 
