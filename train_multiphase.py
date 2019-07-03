@@ -49,7 +49,7 @@ def train_phaseA(speaker, spk_optimizer, data_for_spk, clip=CLIP):
     X = data_for_spk['data']
     Y = data_for_spk['msg']
     Y_hat = Y.transpose(0,1).argmax(dim=2)
-    msg, _, _, Y_hiddens = speaker(train_batch)
+    msg, _, _, Y_hiddens = speaker(X)
     spk_loss = spk_loss_fun(Y_hiddens.transpose(0,1).transpose(1,2), Y_hat)
     spk_loss.backward()
     nn.utils.clip_grad_norm_(speaker.parameters(), clip)
@@ -89,6 +89,7 @@ def train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, train_batch, t
     pred_idx = F.softmax(pred_vector).argmax(dim=1)
     reward, reward_vector = cal_correct_preds(train_batch, train_candidates, pred_idx)
     
+
     if rwd_comp == True:
         comp_p, comp_s = compos_cal_inner(msg, train_batch)
         reward_vector *= comp_p
@@ -203,29 +204,31 @@ comp_ps = []
 comp_ss = []
 msg_types = []
 valid_accs = []
-for i in range(8):
-    rd_idx = 0
+for i in range(80):
     # ====================== Phase B ===================================
     listener = ListeningAgent().to(DEVICE)
     lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
-    
-    for b in range(3000):
-        rd_idx += 1
+
+    rwd_avg20 = 0
+    phB_cnt = 0    
+    while(phB_cnt<3000):
+        phB_cnt += 1
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
 
         reward, spk_loss, lis_loss = train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, 
                                                   train_batch, train_candidates, sel_idx_train, rwd_comp = False)    
         rewards.append(reward)
-        print('Gen.%d ==PhaseB==Round %d, rwd %d, spk_loss %.4f, lis_loss %.4f'%(i,rd_idx,reward, spk_loss, lis_loss))
+        rwd_avg20 = (1-0.01)*rwd_avg20 + 0.01*reward
+        print('Gen.%d ==PhaseB==Round %d, rwd (%d, %d), spk_loss %.4f, lis_loss %.4f'%(i,phB_cnt,reward, rwd_avg20, spk_loss, lis_loss))
 
-        if b%20==1:
+        if phB_cnt%20==1:
             all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
             msg_types.append(len(set(all_msgs.values())))
             comp_p, comp_s = compos_cal(all_msgs)
             comp_ps.append(comp_p)
             comp_ss.append(comp_s)
-    
+        
     # ====================== Phase C ===================================
     for c in range(500):
         batch_list = batch_data_gen()
@@ -237,12 +240,18 @@ for i in range(8):
         print('Gen.%d @@PhaseC@@, round %d'%(i,c))
     
     # ====================== Phase A ===================================
+
     speaker = SpeakingAgent().to(DEVICE)
     spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
-    for a in range(800):  
+    acc_avg20 = 0
+    phA_cnt = 0
+    while (acc_avg20<0.8):  
+        phA_cnt += 1
         data_for_spk = random.choice(data_list)
         acc = train_phaseA(speaker, spk_optimizer, data_for_spk)
-        print('Gen.%d @@PhaseA@@, round %d, acc is %.4f'%(i,a,acc))
+        acc_avg20 = (1-0.05)*acc_avg20 + 0.05*acc
+        print('Gen.%d @@PhaseA@@, round is %d, acc is %.4f, acc_avg20 is %.4f'%(i,phA_cnt, acc,acc_avg20))
+        print(comp_ps[-1])
 
    
 
