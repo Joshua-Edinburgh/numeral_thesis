@@ -203,6 +203,7 @@ comp_ps = []
 comp_ss = []
 msg_types = []
 valid_accs = []
+comp_generations = []
 for i in range(80):
     # ====================== Phase B ===================================
     listener = ListeningAgent().to(DEVICE)
@@ -210,7 +211,7 @@ for i in range(80):
 
     rwd_avg20 = 0
     phB_cnt = 0    
-    while(phB_cnt<5000):
+    while(phB_cnt<3000):
         phB_cnt += 1
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
@@ -228,31 +229,35 @@ for i in range(80):
             comp_ps.append(comp_p)
             comp_ss.append(comp_s)
         
-    # ====================== Phase C ===================================
-    for c in range(2500):
+    # ====================== Record of language ===================================
+    data_list = []
+    comp_list = []
+    for c in range(500):
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
-
-        data_list = []
         data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = False)
         data_list.append(data_for_spk)
+        comp_list.append(compos_cal_inner(data_for_spk['msg'],data_for_spk['data'])[0])        
         print('Gen.%d @@PhaseC@@, round %d'%(i,c))
+    comp_generations.append((i,comp_list))
     
+    
+    # ====================== Phase C ===================================
+    data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = False)   
     # ====================== Phase A ===================================
-
     speaker = SpeakingAgent().to(DEVICE)
     spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
     acc_avg20 = 0
     phA_cnt = 0
-    while (acc_avg20<0.8):  
-        phA_cnt += 1
-        data_for_spk = random.choice(data_list)
+    while (phA_cnt<700):  
+        phA_cnt += 1        
         acc = train_phaseA(speaker, spk_optimizer, data_for_spk)
         acc_avg20 = (1-0.05)*acc_avg20 + 0.05*acc
         print('Gen.%d @@PhaseA@@, round is %d, acc is %.4f, acc_avg20 is %.4f'%(i,phA_cnt, acc,acc_avg20))
         print(comp_ps[-1])
 
-   
+np.save('comp_generations.npy',comp_generations)
+np.save('comp_ps.npy',comp_ps)  
 
 
 

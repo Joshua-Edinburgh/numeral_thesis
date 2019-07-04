@@ -59,9 +59,9 @@ defaults = {
 '''
 hyperparameters of model
 '''
-SEL_CANDID = 10          # Number of candidate when selecting
+SEL_CANDID = 5          # Number of candidate when selecting
 ATTRI_SIZE = 2          # Number of attributes, i.e., number of digits
-NUM_SYSTEM = 10         # Number system, usually just use decimal
+NUM_SYSTEM = 5         # Number system, usually just use decimal
 HIDDEN_SIZE = 100       
 BATCH_SIZE = NUM_SYSTEM**ATTRI_SIZE
 MSG_MAX_LEN = ATTRI_SIZE + 0      # Controlled by ourselves
