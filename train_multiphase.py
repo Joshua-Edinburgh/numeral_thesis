@@ -195,7 +195,7 @@ def valid_cal(speaker, listener, valid_full, valid_candidates):
         return val_acc/valid_full.shape[0]
 
 
-'''
+
 
 # ============= Iterated method 1: just re-initialize listener =======
 rewards = []
@@ -210,7 +210,7 @@ for i in range(80):
 
     rwd_avg20 = 0
     phB_cnt = 0    
-    while(phB_cnt<3000):
+    while(phB_cnt<5000):
         phB_cnt += 1
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
@@ -229,7 +229,7 @@ for i in range(80):
             comp_ss.append(comp_s)
         
     # ====================== Phase C ===================================
-    for c in range(500):
+    for c in range(2500):
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
 
@@ -253,7 +253,7 @@ for i in range(80):
         print(comp_ps[-1])
 
    
-'''
+
 
 
 

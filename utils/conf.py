@@ -59,21 +59,17 @@ defaults = {
 '''
 hyperparameters of model
 '''
-SEL_CANDID = 5          # Number of candidate when selecting
+SEL_CANDID = 10          # Number of candidate when selecting
 ATTRI_SIZE = 2          # Number of attributes, i.e., number of digits
-NUM_SYSTEM = 5         # Number system, usually just use decimal
+NUM_SYSTEM = 10         # Number system, usually just use decimal
 HIDDEN_SIZE = 100       
-BATCH_SIZE = 25
+BATCH_SIZE = NUM_SYSTEM**ATTRI_SIZE
 MSG_MAX_LEN = ATTRI_SIZE + 0      # Controlled by ourselves
 VALID_RATIO = 0      # Ratio of valid set to train set
 
 ROUNDS = 2000
 # Size of vocabulary this is available for communication
-<<<<<<< HEAD
-MSG_VOCSIZE = 5
-=======
-MSG_VOCSIZE = 10
->>>>>>> f0bd1b6a7e9cd6a4d5563eb95b93e2a1342b2347
+MSG_VOCSIZE = NUM_SYSTEM+0
 MSG_MODE = 'REINFORCE' # 'GUMBEL' or 'REINFORCE'
 MSG_HARD = True # Discretized as one-hot vectors
 
