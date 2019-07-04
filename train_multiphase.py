@@ -210,7 +210,7 @@ for i in range(80):
 
     rwd_avg20 = 0
     phB_cnt = 0    
-    while(phB_cnt<5000):
+    while(phB_cnt<3000):
         phB_cnt += 1
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
@@ -229,7 +229,7 @@ for i in range(80):
             comp_ss.append(comp_s)
         
     # ====================== Phase C ===================================
-    for c in range(2500):
+    for c in range(500):
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
 
