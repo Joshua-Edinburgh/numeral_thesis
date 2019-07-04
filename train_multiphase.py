@@ -22,7 +22,7 @@ def cal_correct_preds(data_batch, data_candidate, pred_idx):
     '''
     batch_size = data_batch.shape[0]
     cnt_correct = 0
-    idx_correct = torch.zeros((batch_size,))
+    idx_correct = torch.zeros((batch_size,)).to(DEVICE)
     for i in range(batch_size):
         if data_candidate[i][pred_idx[i]]==data_batch[i]:
             cnt_correct += 1
