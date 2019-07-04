@@ -22,7 +22,7 @@ def cal_correct_preds(data_batch, data_candidate, pred_idx):
     '''
     batch_size = data_batch.shape[0]
     cnt_correct = 0
-    idx_correct = torch.zeros((batch_size,))
+    idx_correct = torch.zeros((batch_size,)).to(DEVICE)
     for i in range(batch_size):
         if data_candidate[i][pred_idx[i]]==data_batch[i]:
             cnt_correct += 1
@@ -252,8 +252,10 @@ for i in range(80):
         print('Gen.%d @@PhaseA@@, round is %d, acc is %.4f, acc_avg20 is %.4f'%(i,phA_cnt, acc,acc_avg20))
         print(comp_ps[-1])
 
-   
-
+np.save('comp_ps.npy',comp_ps)   
+np.save('comp_ss.npy',comp_ss)  
+np.save('msg_types.npy', msg_types)
+np.save('rewards.npy',rewards)
 
 
 
