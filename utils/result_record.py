@@ -161,8 +161,20 @@ def compos_cal(msg):
     corr_spearma = dist_table.corr('spearman')['ED']['HD']
      
     return corr_pearson, corr_spearma
-
 '''
+histo_list = []
+for i, comp_list in comp_generations:
+    tmp_histo = np.histogram(comp_list, bins=5)[0]
+    histo_list.append(tmp_histo)
+
+histo_matrix = np.asarray(histo_list).transpose()
+
+for i in range (5):
+    tmp = str(i*0.2)
+    plt.plot(histo_matrix[i,:50],label='Rho= '+tmp)
+plt.legend()
+plt.show()
+
 msg = {}   
 # === Degenerate =====   
 msg['000'] = ['aaa']       

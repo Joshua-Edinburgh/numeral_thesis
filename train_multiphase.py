@@ -204,14 +204,25 @@ comp_ss = []
 msg_types = []
 valid_accs = []
 comp_generations = []
+
+PHB_STOP_LIST = [3000, 1000, 800, 700]
+PHA_STOP_LIST = [800, 700, 600, 500]
 for i in range(80):
+    PHA_STOP, PHB_STOP = PHA_STOP_LIST[0], PHB_STOP_LIST[0]
+    if i>=1:
+        PHA_STOP, PHB_STOP = PHA_STOP_LIST[1], PHB_STOP_LIST[1]
+    elif i>=10:
+        PHA_STOP, PHB_STOP = PHA_STOP_LIST[2], PHB_STOP_LIST[2]
+    elif i>=50:
+        PHA_STOP, PHB_STOP = PHA_STOP_LIST[3], PHB_STOP_LIST[3]
+        
     # ====================== Phase B ===================================
     listener = ListeningAgent().to(DEVICE)
     lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
     rwd_avg20 = 0
     phB_cnt = 0    
-    while(phB_cnt<3000):
+    while(phB_cnt<PHB_STOP):
         phB_cnt += 1
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
@@ -249,7 +260,7 @@ for i in range(80):
     spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
     acc_avg20 = 0
     phA_cnt = 0
-    while (phA_cnt<700):  
+    while (phA_cnt<PHA_STOP):  
         phA_cnt += 1        
         acc = train_phaseA(speaker, spk_optimizer, data_for_spk)
         acc_avg20 = (1-0.05)*acc_avg20 + 0.05*acc
