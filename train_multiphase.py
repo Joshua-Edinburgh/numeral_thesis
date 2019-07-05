@@ -96,11 +96,11 @@ def train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, train_batch, t
  
             # ========== Perform backpropatation ======
     #lis_loss = lis_loss_fun(pred_vector, true_idx.long().detach())
-    lis_loss = -((reward_vector.detach()*lis_log_prob).mean() + 0.05*lis_entropy.mean())
+    lis_loss = -((reward_vector.detach()*lis_log_prob).mean() + 0.01*lis_entropy.mean())
     lis_loss.backward()
     
     if MSG_MODE == 'REINFORCE':
-        spk_loss = -((reward_vector.detach()*spk_log_prob).mean() + 0.1*spk_entropy.mean())
+        spk_loss = -((reward_vector.detach()*spk_log_prob).mean() + 0.05*spk_entropy.mean())
         spk_loss.backward()
     elif MSG_MODE == 'SCST':
         speaker.eval()
@@ -205,8 +205,8 @@ msg_types = []
 valid_accs = []
 comp_generations = []
 
-PHB_STOP_LIST = [3000, 1000, 800, 700]
-PHA_STOP_LIST = [800, 700, 600, 500]
+PHB_STOP_LIST = [3000, 2500, 2500, 2000]
+PHA_STOP_LIST = [850, 800, 750, 700]
 for i in range(80):
     PHA_STOP, PHB_STOP = PHA_STOP_LIST[0], PHB_STOP_LIST[0]
     if i>=1:
@@ -243,7 +243,7 @@ for i in range(80):
     # ====================== Record of language ===================================
     data_list = []
     comp_list = []
-    for c in range(500):
+    for c in range(1000):
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
         data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = False)

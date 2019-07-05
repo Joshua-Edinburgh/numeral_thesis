@@ -26,7 +26,7 @@ def setup_seed(seed):
      random.seed(seed)
      torch.backends.cudnn.deterministic = True
 
-setup_seed(34313)   # 12345 is valid for N_B=100, SEL_CAN = 5
+setup_seed(112244)   # 12345 is valid for N_B=100, SEL_CAN = 5
 
 
 
@@ -36,8 +36,7 @@ for training model
 DEVICE = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
 LEARNING_RATE = 1e-4 # learning rate
 DROPOUT_RATIO = 0.2
-CLIP = 50.0 # max after clipping gradients
-TEACHER_FORCING_RATIO = 0.5
+CLIP = 50.0 # max after clipping gradient
 DECODER_LEARING_RATIO = 5.0
 NUM_ITERS = 400
 PRINT_EVERY = 1
@@ -62,12 +61,11 @@ hyperparameters of model
 SEL_CANDID = 5          # Number of candidate when selecting
 ATTRI_SIZE = 2          # Number of attributes, i.e., number of digits
 NUM_SYSTEM = 5         # Number system, usually just use decimal
-HIDDEN_SIZE = 100       
+HIDDEN_SIZE = 128       
 BATCH_SIZE = NUM_SYSTEM**ATTRI_SIZE
 MSG_MAX_LEN = ATTRI_SIZE + 0      # Controlled by ourselves
 VALID_RATIO = 0      # Ratio of valid set to train set
 
-ROUNDS = 2000
 # Size of vocabulary this is available for communication
 MSG_VOCSIZE = NUM_SYSTEM+0
 MSG_MODE = 'REINFORCE' # 'GUMBEL' or 'REINFORCE'
