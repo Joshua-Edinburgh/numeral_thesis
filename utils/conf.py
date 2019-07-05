@@ -26,7 +26,7 @@ def setup_seed(seed):
      random.seed(seed)
      torch.backends.cudnn.deterministic = True
 
-setup_seed(112244)   # 12345 is valid for N_B=100, SEL_CAN = 5
+setup_seed(12345)   # 12345 is valid for N_B=100, SEL_CAN = 5
 
 
 
@@ -34,7 +34,7 @@ setup_seed(112244)   # 12345 is valid for N_B=100, SEL_CAN = 5
 for training model
 '''
 DEVICE = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
-LEARNING_RATE = 1e-4 # learning rate
+LEARNING_RATE = 1e-3 # learning rate
 DROPOUT_RATIO = 0.2
 CLIP = 50.0 # max after clipping gradient
 DECODER_LEARING_RATIO = 5.0
@@ -58,7 +58,7 @@ defaults = {
 '''
 hyperparameters of model
 '''
-SEL_CANDID = 5          # Number of candidate when selecting
+SEL_CANDID = 15          # Number of candidate when selecting
 ATTRI_SIZE = 2          # Number of attributes, i.e., number of digits
 NUM_SYSTEM = 5         # Number system, usually just use decimal
 HIDDEN_SIZE = 128       

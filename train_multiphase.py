@@ -96,11 +96,11 @@ def train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, train_batch, t
  
             # ========== Perform backpropatation ======
     #lis_loss = lis_loss_fun(pred_vector, true_idx.long().detach())
-    lis_loss = -((reward_vector.detach()*lis_log_prob).mean() + 0.01*lis_entropy.mean())
+    lis_loss = -((reward_vector.detach()*lis_log_prob).mean() + 0.05*lis_entropy.mean())
     lis_loss.backward()
     
     if MSG_MODE == 'REINFORCE':
-        spk_loss = -((reward_vector.detach()*spk_log_prob).mean() + 0.05*spk_entropy.mean())
+        spk_loss = -((reward_vector.detach()*spk_log_prob).mean() + 0.1*spk_entropy.mean())
         spk_loss.backward()
     elif MSG_MODE == 'SCST':
         speaker.eval()
@@ -222,7 +222,7 @@ for i in range(80):
 
     rwd_avg20 = 0
     phB_cnt = 0    
-    while(phB_cnt<PHB_STOP):
+    while(phB_cnt<1000):
         phB_cnt += 1
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
@@ -243,10 +243,10 @@ for i in range(80):
     # ====================== Record of language ===================================
     data_list = []
     comp_list = []
-    for c in range(1000):
+    for c in range(100):
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
-        data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = False)
+        data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = True)
         data_list.append(data_for_spk)
         comp_list.append(compos_cal_inner(data_for_spk['msg'],data_for_spk['data'])[0])        
         print('Gen.%d @@PhaseC@@, round %d'%(i,c))
@@ -254,14 +254,15 @@ for i in range(80):
     
     
     # ====================== Phase C ===================================
-    data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = False)   
+     # @@@@@@@ Here we should try to shuffle the data pairs, not batches
     # ====================== Phase A ===================================
     speaker = SpeakingAgent().to(DEVICE)
     spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
     acc_avg20 = 0
     phA_cnt = 0
-    while (phA_cnt<PHA_STOP):  
+    while (phA_cnt<100):  
         phA_cnt += 1        
+        data_for_spk = random.choice(data_list)
         acc = train_phaseA(speaker, spk_optimizer, data_for_spk)
         acc_avg20 = (1-0.05)*acc_avg20 + 0.05*acc
         print('Gen.%d @@PhaseA@@, round is %d, acc is %.4f, acc_avg20 is %.4f'%(i,phA_cnt, acc,acc_avg20))
