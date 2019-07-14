@@ -4,6 +4,7 @@ from utils.result_record import *
 from models.model import *
 from torch.nn import NLLLoss
 import matplotlib.pyplot as plt
+import os
 
 
 speaker = SpeakingAgent().to(DEVICE)
@@ -67,7 +68,7 @@ def train_phaseA(speaker, spk_optimizer, data_for_spk, clip=CLIP):
 
 
 def train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, train_batch, train_candidates, 
-                sel_idx_train, rwd_comp = False, update='BOTH', clip=CLIP):
+                sel_idx_train, exp_ratio = 1, rwd_comp = False, update='BOTH', clip=CLIP):
     '''
         Phase B: playing the game and update parameters in speaker or/and listener
         At the beginning of Phase B, we should re-initialize the listener.
@@ -96,11 +97,11 @@ def train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, train_batch, t
  
             # ========== Perform backpropatation ======
     #lis_loss = lis_loss_fun(pred_vector, true_idx.long().detach())
-    lis_loss = -((reward_vector.detach()*lis_log_prob).mean() + 0.05*lis_entropy.mean())
+    lis_loss = -((reward_vector.detach()*lis_log_prob).mean() + 0.05*exp_ratio*lis_entropy.mean())
     lis_loss.backward()
     
     if MSG_MODE == 'REINFORCE':
-        spk_loss = -((reward_vector.detach()*spk_log_prob).mean() + 0.1*spk_entropy.mean())
+        spk_loss = -((reward_vector.detach()*spk_log_prob).mean() + 0.1*exp_ratio*spk_entropy.mean())
         spk_loss.backward()
     elif MSG_MODE == 'SCST':
         speaker.eval()
@@ -204,33 +205,45 @@ comp_ss = []
 msg_types = []
 valid_accs = []
 comp_generations = []
+max_comp = 0
 
-PHB_STOP_LIST = [3000, 2500, 2500, 2000]
-PHA_STOP_LIST = [850, 800, 750, 700]
-for i in range(80):
-    PHA_STOP, PHB_STOP = PHA_STOP_LIST[0], PHB_STOP_LIST[0]
-    if i>=1:
-        PHA_STOP, PHB_STOP = PHA_STOP_LIST[1], PHB_STOP_LIST[1]
-    elif i>=10:
-        PHA_STOP, PHB_STOP = PHA_STOP_LIST[2], PHB_STOP_LIST[2]
-    elif i>=50:
-        PHA_STOP, PHB_STOP = PHA_STOP_LIST[3], PHB_STOP_LIST[3]
-        
+for i in range(30):       
     # ====================== Phase B ===================================
     listener = ListeningAgent().to(DEVICE)
     lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
     rwd_avg20 = 0
     phB_cnt = 0    
-    while(phB_cnt<1000):
+    decay_explore_ratio = 1
+    while(phB_cnt<args.phB):
         phB_cnt += 1
-        batch_list = batch_data_gen()
-        train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
-
-        reward, spk_loss, lis_loss = train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, 
-                                                  train_batch, train_candidates, sel_idx_train, rwd_comp = False)    
+        if phB_cnt%4==1:
+            batch_list = batch_data_gen()
+            train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
+        
+        if phB_cnt<=200:
+            reward, spk_loss, lis_loss = train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, 
+                                                  train_batch, train_candidates, sel_idx_train, 
+                                                  exp_ratio = decay_explore_ratio,
+                                                  update='LISTENER')    
+        else:
+            reward, spk_loss, lis_loss = train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, 
+                                                  train_batch, train_candidates, sel_idx_train, 
+                                                  exp_ratio = decay_explore_ratio,
+                                                  update='BOTH')  
+            
         rewards.append(reward)
         rwd_avg20 = (1-0.01)*rwd_avg20 + 0.01*reward
+        '''
+        if rwd_avg20 >= 15:
+            decay_explore_ratio = 2        
+        
+        if rwd_avg20 >= 20:
+            decay_explore_ratio = 3
+            
+        if rwd_avg20 >= 23:
+            decay_explore_ratio = 4
+        '''    
         print('Gen.%d ==PhaseB==Round %d, rwd (%d, %d), spk_loss %.4f, lis_loss %.4f'%(i,phB_cnt,reward, rwd_avg20, spk_loss, lis_loss))
 
         if phB_cnt%20==1:
@@ -239,6 +252,9 @@ for i in range(80):
             comp_p, comp_s = compos_cal(all_msgs)
             comp_ps.append(comp_p)
             comp_ss.append(comp_s)
+            if comp_p>=max_comp:
+                max_comp = comp_p
+                max_msg_all = all_msgs
         
     # ====================== Record of language ===================================
     data_list = []
@@ -250,30 +266,37 @@ for i in range(80):
         data_list.append(data_for_spk)
         comp_list.append(compos_cal_inner(data_for_spk['msg'],data_for_spk['data'])[0])        
         print('Gen.%d @@PhaseC@@, round %d'%(i,c))
-    comp_generations.append((i,comp_list))
+    comp_generations.append(comp_list)
     
     
     # ====================== Phase C ===================================
-     # @@@@@@@ Here we should try to shuffle the data pairs, not batches
+    shuf_pairs = pair_gen(data_list, phA_rnds = 100, sub_batch_size = 1)
     # ====================== Phase A ===================================
     speaker = SpeakingAgent().to(DEVICE)
     spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
     acc_avg20 = 0
     phA_cnt = 0
-    while (phA_cnt<100):  
+    while (phA_cnt<args.phA):  
         phA_cnt += 1        
-        data_for_spk = random.choice(data_list)
+        data_for_spk = random.choice(shuf_pairs)
         acc = train_phaseA(speaker, spk_optimizer, data_for_spk)
         acc_avg20 = (1-0.05)*acc_avg20 + 0.05*acc
         print('Gen.%d @@PhaseA@@, round is %d, acc is %.4f, acc_avg20 is %.4f'%(i,phA_cnt, acc,acc_avg20))
-        print(comp_ps[-1])
-
-np.save('comp_generations.npy',comp_generations)
-np.save('comp_ps.npy',comp_ps)  
+        print(comp_ps[-1])    
 
 
 
 
+save_path = 'exp_results/' + args.path + '/'
+if not os.path.exists(save_path):
+    os.mkdir(save_path)
+np.save(save_path+'comp_ps.npy', comp_ps)
+np.save(save_path+'rewards.npy',rewards)
+np.save(save_path+'msg_types.npy',np.asarray(msg_types))
+np.save(save_path+'comp_generations', np.asarray(comp_generations))
+msg_print_to_file(max_msg_all, save_path)
 
+
+    
 #all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
 #comp_p, comp_s = compos_cal(all_msgs)

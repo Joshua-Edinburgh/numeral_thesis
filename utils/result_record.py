@@ -8,6 +8,7 @@ Created on Thu Jun 20 10:51:54 2019
 
 from utils.conf import *
 import pandas as pd
+import os
 
 vocab_table_full = [chr(97+int(v)) for v in range(26)]
 #vocab_table_full[-1] = '@'
@@ -161,9 +162,35 @@ def compos_cal(msg):
     corr_spearma = dist_table.corr('spearman')['ED']['HD']
      
     return corr_pearson, corr_spearma
+
+
+def msg_print_to_file(msg_all, path):
+    '''
+        Given the msg_all dictionary, write it down to the file
+    '''
+    if not os.path.exists(path):
+        os.mkdir(path)
+    save_path = path+'msg_all.txt'
+
+    with open(save_path,'a') as f:
+        for i in range(NUM_SYSTEM+1):
+            line = ''
+            for j in range(NUM_SYSTEM+1):
+                if i==0:
+                    line = line + str(j)+'\t'
+                elif j==0:
+                    line = line + str(i)+'\t'
+                else:
+                    key = (str(j-1),str(i-1))
+                    tmp = msg_all[key]
+                    line = line + tmp+'\t'
+            f.write(line+'\n')
+        
+  
+
 '''
 histo_list = []
-for i, comp_list in comp_generations:
+for comp_list in comp_generations:
     tmp_histo = np.histogram(comp_list, bins=5)[0]
     histo_list.append(tmp_histo)
 
