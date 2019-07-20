@@ -1,0 +1,9 @@
+0	1	2	3	4	5	6	7	8	
+1	fg	hh	gg	ag	cg	eg	dg	bg	
+2	fe	hh	ge	ae	ce	ee	de	be	
+3	ff	hh	gf	af	cf	ef	df	bf	
+4	fh	hh	gh	ah	ch	eh	dh	bh	
+5	fd	hh	gd	ad	cd	ed	dd	bd	
+6	fb	hh	gb	ab	cb	eb	db	bb	
+7	fa	hh	ga	aa	ca	ea	da	ba	
+8	fc	cc	gc	ac	cc	ec	dc	bc	
