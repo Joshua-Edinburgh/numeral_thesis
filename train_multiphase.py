@@ -167,7 +167,7 @@ def train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train
                 if rewards[i] == 1:         # If this obj-msg pair can correctly play the game, use this pair
                     new_msg.append(msg[i])
                 else:                       # If this obj-msg pair cannot play the game, randomly gen. the pair
-                    rnd_msg = torch.zeros(msg[i].shape)
+                    rnd_msg = torch.zeros(msg[i].shape).to(DEVICE)
                     for j in range(msg[i].shape[0]):
                         rnd_idx = np.random.randint(0,msg[i].shape[1])
                         rnd_msg[j, rnd_idx] = 1
@@ -207,10 +207,10 @@ valid_accs = []
 comp_generations = []
 max_comp = 0
 
-for i in range(30):       
+for i in range(80):       
     # ====================== Phase B ===================================
-    listener = ListeningAgent().to(DEVICE)
-    lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
+    #listener = ListeningAgent().to(DEVICE)
+    #lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
     rwd_avg20 = 0
     phB_cnt = 0    
@@ -272,8 +272,8 @@ for i in range(30):
     # ====================== Phase C ===================================
     shuf_pairs = pair_gen(data_list, phA_rnds = 100, sub_batch_size = 1)
     # ====================== Phase A ===================================
-    speaker = SpeakingAgent().to(DEVICE)
-    spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
+    #speaker = SpeakingAgent().to(DEVICE)
+    #spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
     acc_avg20 = 0
     phA_cnt = 0
     while (phA_cnt<args.phA):  
@@ -295,6 +295,8 @@ np.save(save_path+'rewards.npy',rewards)
 np.save(save_path+'msg_types.npy',np.asarray(msg_types))
 np.save(save_path+'comp_generations', np.asarray(comp_generations))
 msg_print_to_file(max_msg_all, save_path)
+
+
 
 
     

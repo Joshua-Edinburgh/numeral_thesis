@@ -186,7 +186,17 @@ def msg_print_to_file(msg_all, path):
                     line = line + tmp+'\t'
             f.write(line+'\n')
         
-  
+def smooth(matrix, ratio=20):
+    '''
+        Smooth the matrix according rows
+    '''
+    new_matrix = np.zeros(matrix.shape)
+    for i in range(matrix.shape[0]):
+        tmp = 0
+        for j in range(matrix.shape[1]):
+            tmp = (1-1/ratio)*tmp + 1/ratio*matrix[i,j]
+            new_matrix[i,j] = tmp
+    return new_matrix
 
 '''
 histo_list = []
@@ -195,10 +205,11 @@ for comp_list in comp_generations:
     histo_list.append(tmp_histo)
 
 histo_matrix = np.asarray(histo_list).transpose()
+smoth_matrix = smooth(histo_matrix,20)
 
 for i in range (5):
-    tmp = str(i*0.2)
-    plt.plot(histo_matrix[i,:50],label='Rho= '+tmp)
+    tmp = str(i*2/10)
+    plt.plot(smoth_matrix[i,:],label='Rho= '+tmp)
 plt.legend()
 plt.show()
 
