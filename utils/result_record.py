@@ -71,20 +71,11 @@ def one_msg_translator(one_msg, vocab_table_full, padding=True):
     '''
     max_len, vocab_len = one_msg.shape
     vocab_table = vocab_table_full[:vocab_len]
-    #vocab_table[-1] = vocab_table_full[-1]
     
-    stop_flag = False
     sentence = []
     for i in range(max_len):
         voc_idx = one_msg[i].argmax()
         tmp_word = vocab_table[voc_idx]
-        
-        if tmp_word == vocab_table[-1]:
-            stop_flag = True
-        if padding == False and stop_flag:            
-            break
-        if padding == True and stop_flag:
-            tmp_word = vocab_table[-1]
         sentence.append(tmp_word)
     
     return ''.join(sentence)
@@ -118,7 +109,7 @@ def compos_cal_inner(msg, train_batch):
         value = one_msg_translator(msg[i], vocab_table_full, True)
         all_msg[key] = value
     comp_p, comp_s = compos_cal(all_msg)
-    return comp_p, comp_s
+    return comp_p, comp_s, all_msg
     
 
 def compos_cal(msg):
