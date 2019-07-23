@@ -207,10 +207,10 @@ valid_accs = []
 comp_generations = []
 max_comp = 0
 
-for i in range(80):       
+for i in range(100):       
     # ====================== Phase B ===================================
-    #listener = ListeningAgent().to(DEVICE)
-    #lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
+    listener = ListeningAgent().to(DEVICE)
+    lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
     rwd_avg20 = 0
     phB_cnt = 0    
@@ -259,7 +259,7 @@ for i in range(80):
     # ====================== Record of language ===================================
     data_list = []
     comp_list = []
-    for c in range(100):
+    for c in range(2000):
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
         data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = True)
@@ -272,8 +272,8 @@ for i in range(80):
     # ====================== Phase C ===================================
     shuf_pairs = pair_gen(data_list, phA_rnds = 100, sub_batch_size = 1)
     # ====================== Phase A ===================================
-    #speaker = SpeakingAgent().to(DEVICE)
-    #spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
+    speaker = SpeakingAgent().to(DEVICE)
+    spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
     acc_avg20 = 0
     phA_cnt = 0
     while (phA_cnt<args.phA):  
