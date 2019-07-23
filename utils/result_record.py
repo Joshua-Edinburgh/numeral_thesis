@@ -71,20 +71,11 @@ def one_msg_translator(one_msg, vocab_table_full, padding=True):
     '''
     max_len, vocab_len = one_msg.shape
     vocab_table = vocab_table_full[:vocab_len]
-    #vocab_table[-1] = vocab_table_full[-1]
     
-    stop_flag = False
     sentence = []
     for i in range(max_len):
         voc_idx = one_msg[i].argmax()
         tmp_word = vocab_table[voc_idx]
-        
-        if tmp_word == vocab_table[-1]:
-            stop_flag = True
-        if padding == False and stop_flag:            
-            break
-        if padding == True and stop_flag:
-            tmp_word = vocab_table[-1]
         sentence.append(tmp_word)
     
     return ''.join(sentence)
@@ -118,7 +109,7 @@ def compos_cal_inner(msg, train_batch):
         value = one_msg_translator(msg[i], vocab_table_full, True)
         all_msg[key] = value
     comp_p, comp_s = compos_cal(all_msg)
-    return comp_p, comp_s
+    return comp_p, comp_s, all_msg
     
 
 def compos_cal(msg):
@@ -186,7 +177,17 @@ def msg_print_to_file(msg_all, path):
                     line = line + tmp+'\t'
             f.write(line+'\n')
         
-  
+def smooth(matrix, ratio=20):
+    '''
+        Smooth the matrix according rows
+    '''
+    new_matrix = np.zeros(matrix.shape)
+    for i in range(matrix.shape[0]):
+        tmp = 0
+        for j in range(matrix.shape[1]):
+            tmp = (1-1/ratio)*tmp + 1/ratio*matrix[i,j]
+            new_matrix[i,j] = tmp
+    return new_matrix
 
 '''
 histo_list = []
@@ -195,10 +196,11 @@ for comp_list in comp_generations:
     histo_list.append(tmp_histo)
 
 histo_matrix = np.asarray(histo_list).transpose()
+smoth_matrix = smooth(histo_matrix,20)
 
 for i in range (5):
-    tmp = str(i*0.2)
-    plt.plot(histo_matrix[i,:50],label='Rho= '+tmp)
+    tmp = str(i*2/10)
+    plt.plot(smoth_matrix[i,:],label='Rho= '+tmp)
 plt.legend()
 plt.show()
 

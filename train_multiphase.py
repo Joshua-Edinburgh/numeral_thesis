@@ -207,10 +207,14 @@ valid_accs = []
 comp_generations = []
 max_comp = 0
 
+<<<<<<< HEAD
 for i in range(100):
+=======
+for i in range(80):       
+>>>>>>> 28a07047b81569b45780876185be4584e7023779
     # ====================== Phase B ===================================
-    listener = ListeningAgent().to(DEVICE)
-    lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
+    #listener = ListeningAgent().to(DEVICE)
+    #lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
     rwd_avg20 = 0
     phB_cnt = 0
@@ -272,8 +276,8 @@ for i in range(100):
     # ====================== Phase C ===================================
     shuf_pairs = pair_gen(data_list, phA_rnds = 100, sub_batch_size = 1)
     # ====================== Phase A ===================================
-    speaker = SpeakingAgent().to(DEVICE)
-    spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
+    #speaker = SpeakingAgent().to(DEVICE)
+    #spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
     acc_avg20 = 0
     phA_cnt = 0
     while (phA_cnt<args.phA):
@@ -298,5 +302,10 @@ msg_print_to_file(max_msg_all, save_path)
 
 
 
+<<<<<<< HEAD
+=======
+
+    
+>>>>>>> 28a07047b81569b45780876185be4584e7023779
 #all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
 #comp_p, comp_s = compos_cal(all_msgs)

@@ -34,18 +34,19 @@ def key_to_value(key, char_mapping,comp = True):
     '''
         Generate value based on key. Now only for NUM_SYSTEM=10, ATTRI_SIZE=2
     '''
+    key[0]
     tmp = ''.join([s for s in key])
     int_key = int(tmp)
-    dig_0 = np.mod(int_key, NUM_SYSTEM)
-    dig_1 = np.mod(int(int_key/NUM_SYSTEM), NUM_SYSTEM)
-    dig_2 = np.mod(int(int_key/NUM_SYSTEM**2), NUM_SYSTEM)
+    dig_0 = int(key[0])
+    dig_1 = int(key[1])
+    #dig_2 = np.mod(int(int_key/NUM_SYSTEM**2), NUM_SYSTEM)
     value = []
     if comp == True:
-        value.append(char_mapping[dig_2])
+        #value.append(char_mapping[dig_2])
         value.append(char_mapping[dig_1])
         value.append(char_mapping[dig_0])
     else:
-        value.append(char_mapping[np.random.randint(0,len(char_mapping))])
+        #value.append(char_mapping[np.random.randint(0,len(char_mapping))])
         value.append(char_mapping[np.random.randint(0,len(char_mapping))])
         value.append(char_mapping[np.random.randint(0,len(char_mapping))])
         
@@ -91,17 +92,16 @@ for i in range(NUM_SYSTEM**ATTRI_SIZE):
     key = num_to_tup(i)
     value = key_to_value(key, char_mapping, True)
     comp_all[key] = value
-    if i in valid_list:
-        comp_valid[key] = value
-    elif i in train_list:
-        comp_train[key] = value
+    comp_valid[key] = value
     # ==== For spk training version
     msg_list.append(value_to_onehot(value, char_mapping))
     data_list.append(i)
 
 comp_spk_train['data'] = np.asarray(data_list)
 comp_spk_train['msg'] = torch.stack(msg_list).transpose(0,1)
+
 #compos_cal(comp_all)   # Should approximate 1.
+
 
 # ========== Holistic language ===================
 holi_all = {}
@@ -121,10 +121,7 @@ for i in range(NUM_SYSTEM**ATTRI_SIZE):
     key = key_all_list[i]
     value = value_all_list[i]
     holi_all[key] = value
-    if i in valid_list:
-        holi_valid[key] = value
-    elif i in train_list:
-        holi_train[key] = value
+    holi_valid[key] = value
     # ==== For spk training version
     msg_list.append(value_to_onehot(value, char_mapping))
     data_list.append(i)    
@@ -152,6 +149,13 @@ def get_lis_curve_msg(lis_curve_batch_ls, language_train):
         msg_list.append(tmp_msg)
     lis_train['msg'] = torch.stack(msg_list).transpose(0,1)
     return lis_train 
+
+
+
+#comp_p,_, all_msg = compos_cal_inner(comp_spk_train['msg'],comp_spk_train['data'])
+
+
+
 
 
 '''
