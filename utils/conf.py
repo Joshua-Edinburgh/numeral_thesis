@@ -36,7 +36,7 @@ parser.add_argument('--lr_ratio',type=float, default=1, help='lr for listener is
 parser.add_argument('--sel_candi', type=int, default=15, help='candiates for the listene')
 parser.add_argument('--num_sys', type=int, default=8, help='number of attributes')
 parser.add_argument('--phA', type=int, default=1000, help='the rounds for phase A')
-parser.add_argument('--phB',type=str, default=2000, help='the rounds for phase B')
+parser.add_argument('--phB',type=int, default=2000, help='the rounds for phase B')
 parser.add_argument('--path',type=str, default='test', help='the path to save the results')
 
 args = parser.parse_args()
@@ -50,7 +50,7 @@ setup_seed(args.seed)   # 12345 is valid for N_B=100, SEL_CAN = 5
 '''
 for training model
 '''
-DEVICE = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 LEARNING_RATE = args.lr # learning rate
 CLIP = 50.0 # max after clipping gradient
 DECODER_LEARING_RATIO = args.lr_ratio
@@ -63,7 +63,7 @@ hyperparameters of model
 SEL_CANDID = args.sel_candi          # Number of candidate when selecting
 ATTRI_SIZE = 2          # Number of attributes, i.e., number of digits
 NUM_SYSTEM = args.num_sys         # Number system, usually just use decimal
-HIDDEN_SIZE = 128       
+HIDDEN_SIZE = 128
 BATCH_SIZE = NUM_SYSTEM**ATTRI_SIZE
 MSG_MAX_LEN = ATTRI_SIZE + 0      # Controlled by ourselves
 VALID_RATIO = 0      # Ratio of valid set to train set
