@@ -81,8 +81,6 @@ deg_spk_train['msg'] = torch.stack(msg_list).transpose(0,1)
         
 # ========== Compositional language ===================
 comp_all = {}
-comp_train = {}
-comp_valid = {}
 
 comp_spk_train = {}  # Data for spk training, 'data' should be dicimal, 'msg' one hot
 data_list = []
@@ -92,21 +90,54 @@ for i in range(NUM_SYSTEM**ATTRI_SIZE):
     key = num_to_tup(i)
     value = key_to_value(key, char_mapping, True)
     comp_all[key] = value
-    comp_valid[key] = value
     # ==== For spk training version
     msg_list.append(value_to_onehot(value, char_mapping))
     data_list.append(i)
 
 comp_spk_train['data'] = np.asarray(data_list)
 comp_spk_train['msg'] = torch.stack(msg_list).transpose(0,1)
-
+print('Comp comp is: '+ str(compos_cal(comp_all)))
 #compos_cal(comp_all)   # Should approximate 1.
 
+# ========== Holistic language ===================
+holi_spk_train = {}
+new_idx = torch.randperm(64)
+holi_spk_train['data'] = comp_spk_train['data']
+holi_spk_train['msg'] = comp_spk_train['msg'][:,new_idx,:]
 
+comp, _, _ = compos_cal_inner(holi_spk_train['msg'],holi_spk_train['data'])
+print('Holi comp is: '+ str(comp))
+
+# ========== Holistic language2 ===================
+PERM2 = 50
+holi_spk_train2 = {}
+new_idx2 = comp_spk_train['data']
+perm = torch.randperm(PERM2)
+new_idx2 = torch.cat((perm, torch.tensor(new_idx2[PERM2:])),0)
+
+holi_spk_train2['data'] = comp_spk_train['data']
+holi_spk_train2['msg'] = comp_spk_train['msg'][:,new_idx2,:]
+
+comp, _, _ = compos_cal_inner(holi_spk_train2['msg'],holi_spk_train2['data'])
+print('Holi2 comp is: '+ str(comp))
+
+# ========== Holistic language3 ===================
+PERM3 = 35
+holi_spk_train3 = {}
+new_idx3 = comp_spk_train['data']
+perm = torch.randperm(PERM3)
+new_idx3 = torch.cat((perm, torch.tensor(new_idx3[PERM3:])),0)
+
+holi_spk_train3['data'] = comp_spk_train['data']
+holi_spk_train3['msg'] = comp_spk_train['msg'][:,new_idx3,:]
+
+comp, _, _ = compos_cal_inner(holi_spk_train3['msg'],holi_spk_train3['data'])
+print('Holi3 comp is: '+ str(comp))
+
+
+"""
 # ========== Holistic language ===================
 holi_all = {}
-holi_train = {}
-holi_valid = {}
 
 holi_spk_train = {}  # Data for spk training, 'data' should be dicimal, 'msg' one hot
 data_list = []
@@ -121,7 +152,6 @@ for i in range(NUM_SYSTEM**ATTRI_SIZE):
     key = key_all_list[i]
     value = value_all_list[i]
     holi_all[key] = value
-    holi_valid[key] = value
     # ==== For spk training version
     msg_list.append(value_to_onehot(value, char_mapping))
     data_list.append(i)    
@@ -129,6 +159,7 @@ for i in range(NUM_SYSTEM**ATTRI_SIZE):
 holi_spk_train['data'] = np.asarray(data_list)
 holi_spk_train['msg'] = torch.stack(msg_list).transpose(0,1)
 #compos_cal(holi_all)    # Should be smaller than 1
+"""
 
 
 

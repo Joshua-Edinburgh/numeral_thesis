@@ -31,7 +31,7 @@ def setup_seed(seed):
 parser = argparse.ArgumentParser()
 parser.add_argument('--tau', type=int, default=2, help='for gumble softmax')
 parser.add_argument('--seed', type=int, default=12345, help='random seed')
-parser.add_argument('--lr', type=float, default=5*1e-4, help='learning rate')
+parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--lr_ratio',type=float, default=0.5, help='lr for listener is lr*lr_ratio')
 parser.add_argument('--sel_candi', type=int, default=15, help='candiates for the listene')
 parser.add_argument('--num_sys', type=int, default=8, help='number of attributes')

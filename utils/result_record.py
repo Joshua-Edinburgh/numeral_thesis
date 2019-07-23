@@ -81,6 +81,27 @@ def one_msg_translator(one_msg, vocab_table_full, padding=True):
     return ''.join(sentence)
 
 
+def msg_generator_sample(speaker, object_list, vocab_table_full, padding=True):
+    '''
+        Use this function to generate messages for all items in object_list. 
+        Padding is to control whether msg have the same length.
+    '''
+    with torch.no_grad():
+        speaker.train()
+        all_msg = {}
+        
+        all_batch = np.asarray(object_list)
+        msgs, _, _, _ = speaker(all_batch)
+    
+        msgs = msgs.transpose(0,1)
+        for i in range(msgs.shape[0]):
+            key = num_to_tup(object_list[i])
+            value = one_msg_translator(msgs[i], vocab_table_full, True)
+            all_msg[key] = value
+        
+        return all_msg
+
+
 def msg_generator(speaker, object_list, vocab_table_full, padding=True):
     '''
         Use this function to generate messages for all items in object_list. 
