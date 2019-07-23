@@ -207,15 +207,9 @@ valid_accs = []
 comp_generations = []
 max_comp = 0
 
-<<<<<<< HEAD
-for i in range(100):       
-=======
-<<<<<<< HEAD
-for i in range(100):
-=======
+
+
 for i in range(80):       
->>>>>>> 28a07047b81569b45780876185be4584e7023779
->>>>>>> 5d1d89929ea26e76f5288a26e1323cc07935e722
     # ====================== Phase B ===================================
     listener = ListeningAgent().to(DEVICE)
     lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
@@ -306,10 +300,5 @@ msg_print_to_file(max_msg_all, save_path)
 
 
 
-<<<<<<< HEAD
-=======
-
-    
->>>>>>> 28a07047b81569b45780876185be4584e7023779
 #all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
 #comp_p, comp_s = compos_cal(all_msgs)
