@@ -36,7 +36,8 @@ parser.add_argument('--lr_ratio',type=float, default=0.5, help='lr for listener 
 parser.add_argument('--sel_candi', type=int, default=15, help='candiates for the listene')
 parser.add_argument('--num_sys', type=int, default=8, help='number of attributes')
 parser.add_argument('--phA', type=int, default=1000, help='the rounds for phase A')
-parser.add_argument('--phB',type=int, default=5000, help='the rounds for phase B')
+parser.add_argument('--phB',type=int, default=4000, help='the rounds for phase B')
+parser.add_argument('--phLP',type=int, default=200, help='the rounds for phase pre-train listener')
 parser.add_argument('--path',type=str, default='test', help='the path to save the results')
 
 args = parser.parse_args()

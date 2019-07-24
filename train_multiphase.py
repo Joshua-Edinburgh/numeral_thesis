@@ -223,7 +223,7 @@ for i in range(80):
             batch_list = batch_data_gen()
             train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
 
-        if phB_cnt<=200:
+        if phB_cnt<=args.phLP:
             reward, spk_loss, lis_loss = train_phaseB(speaker, listener, spk_optimizer, lis_optimizer,
                                                   train_batch, train_candidates, sel_idx_train,
                                                   exp_ratio = decay_explore_ratio,
