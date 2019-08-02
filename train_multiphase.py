@@ -209,7 +209,7 @@ max_comp = 0
 
 
 
-for i in range(80):       
+for i in range(80):
     # ====================== Phase B ===================================
     listener = ListeningAgent().to(DEVICE)
     lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)

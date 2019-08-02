@@ -51,7 +51,7 @@ setup_seed(args.seed)   # 12345 is valid for N_B=100, SEL_CAN = 5
 '''
 for training model
 '''
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 LEARNING_RATE = args.lr # learning rate
 CLIP = 50.0 # max after clipping gradient
 DECODER_LEARING_RATIO = args.lr_ratio
@@ -64,7 +64,7 @@ hyperparameters of model
 SEL_CANDID = args.sel_candi          # Number of candidate when selecting
 ATTRI_SIZE = 2          # Number of attributes, i.e., number of digits
 NUM_SYSTEM = args.num_sys         # Number system, usually just use decimal
-HIDDEN_SIZE = 128       
+HIDDEN_SIZE = 128
 BATCH_SIZE = NUM_SYSTEM**ATTRI_SIZE
 MSG_MAX_LEN = ATTRI_SIZE + 0      # Controlled by ourselves
 VALID_RATIO = 0      # Ratio of valid set to train set
