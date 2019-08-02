@@ -11,7 +11,10 @@ import numpy as np
 from utils.conf import *
 
 
-def valid_list(low, high, num):
+
+
+
+def valid_list_gen(low, high, num):
     '''
         Randomly generate distinct numbers, range in (low, high), with size.
     '''
@@ -23,9 +26,9 @@ def valid_list(low, high, num):
     return s
 
 
-def gen_distinct_candidates(tgt_list, train_list, candi_size = SEL_CANDID):
+def gen_distinct_candidates(tgt_list, sel_list, candi_size = SEL_CANDID):
     '''
-        tgt_list may contain part of elements in train_list
+        tgt_list may contain part of elements in sel_list
         output the (data_candidates, sel_idx)
     '''
     batch_size = len(tgt_list)
@@ -38,9 +41,9 @@ def gen_distinct_candidates(tgt_list, train_list, candi_size = SEL_CANDID):
             if j == 0:
                 data_candidates[i,j]=tgt_list[i]
                 continue
-            rand_candi = random.choice(train_list)
+            rand_candi = random.choice(sel_list)
             while (rand_candi in data_candidates[i,:]):
-                rand_candi = random.choice(train_list)
+                rand_candi = random.choice(sel_list)
             data_candidates[i, j] = rand_candi
         data_candidates[i, 0] = data_candidates[i, tmp_idx]
         data_candidates[i, tmp_idx] = tgt_list[i]
@@ -66,9 +69,7 @@ def gen_candidates(low, high, valid_list, batch = BATCH_SIZE, candi = SEL_CANDID
             s.append(valid_list[x])
         return np.asarray(s).reshape((valid_num, candi))
 
-valid_num = int(NUM_SYSTEM**ATTRI_SIZE * VALID_RATIO)
-valid_list = valid_list(0, NUM_SYSTEM**ATTRI_SIZE, valid_num)
-train_list = list(set([i for i in range(NUM_SYSTEM**ATTRI_SIZE)]) ^ set(valid_list))
+
 
 def valid_data_gen():
     sel_idx_val = np.random.randint(0,SEL_CANDID, (len(valid_list),))
@@ -82,16 +83,16 @@ def valid_data_gen():
 
 
 def batch_data_gen():
-    num_batches = int(len(train_list)/BATCH_SIZE) # Here we assume batch size=x*100 first
-    random.shuffle(train_list)
+    num_batches = int(len(all_list)/BATCH_SIZE) # Here we assume batch size=x*100 first
+    random.shuffle(all_list)
     
     batch_list = []
     
     for i in range(num_batches):
         one_batch = {}
-        tmp_list = train_list[i*BATCH_SIZE:(i+1)*BATCH_SIZE]
-        train_candidates, sel_idx_train = gen_distinct_candidates(tmp_list, train_list)
-        data_batch = np.zeros((BATCH_SIZE,))
+        tmp_list = all_list[i*BATCH_SIZE:(i+1)*BATCH_SIZE]
+        train_candidates, sel_idx_train = gen_distinct_candidates(tmp_list, all_list)
+
         for i in range(BATCH_SIZE):
             train_candidates[i,sel_idx_train[i]] = tmp_list[i]
             
@@ -100,6 +101,50 @@ def batch_data_gen():
         one_batch['data'] = np.asarray(tmp_list)
         batch_list.append(one_batch)
     return batch_list
+
+
+
+
+def batch_data_gen_valid(train_list, valid_list):
+    '''
+        Only one batch in batch_list
+    '''   
+    
+    train_batch_list = []
+    valid_batch_list = []
+    train_batch = {}
+    valid_batch = {}
+    random.shuffle(train_list)
+    random.shuffle(valid_list)
+    train_candidates, sel_idx_train = gen_distinct_candidates(train_list, train_list)
+    valid_candidates, sel_idx_valid = gen_distinct_candidates(valid_list, all_list)
+
+    for i in range(len(train_list)):
+        train_candidates[i,sel_idx_train[i]] = train_list[i]
+    for j in range(len(valid_list)):
+        valid_candidates[j,sel_idx_valid[j]] = valid_list[j]
+            
+    train_batch['sel_idx'] = sel_idx_train
+    train_batch['candidates'] = train_candidates
+    train_batch['data'] = np.asarray(train_list)
+    
+    valid_batch['sel_idx'] = sel_idx_valid
+    valid_batch['candidates'] = valid_candidates
+    valid_batch['data'] = np.asarray(valid_list)
+    
+    train_batch_list.append(train_batch)
+    valid_batch_list.append(valid_batch)
+    return train_batch_list, valid_batch_list
+'''
+tl,vl = batch_data_gen_valid(train_list, valid_list)
+for i in range(56):
+    for j in range(15):
+        if tl[0]['candidates'][i,j] in valid_list:
+            print('@@@@')
+'''    
+
+
+
 
 def shuffle_batch(batch_list):
     '''
@@ -150,6 +195,11 @@ def pair_gen(data_list, phA_rnds = 100, sub_batch_size = 1):
     
     return phA_data_list     
 
+valid_num = VALID_NUM
+train_num = NUM_SYSTEM**ATTRI_SIZE - VALID_NUM
+all_list = [i for i in range(NUM_SYSTEM**ATTRI_SIZE)]
+valid_list = valid_list_gen(0, NUM_SYSTEM**ATTRI_SIZE, valid_num)
+train_list = list(set([i for i in range(NUM_SYSTEM**ATTRI_SIZE)]) ^ set(valid_list))
 
 '''
 batch_list = batch_data_gen()

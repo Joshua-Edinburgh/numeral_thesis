@@ -12,7 +12,6 @@ listener = ListeningAgent().to(DEVICE)
 spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
 lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
-valid_full, valid_candidates, sel_idx_val = valid_data_gen()
 batch_list = batch_data_gen()
 
 def cal_correct_preds(data_batch, data_candidate, pred_idx):
@@ -249,7 +248,7 @@ for i in range(80):
         print('Gen.%d ==PhaseB==Round %d, rwd (%d, %d), spk_loss %.4f, lis_loss %.4f'%(i,phB_cnt,reward, rwd_avg20, spk_loss, lis_loss))
 
         if phB_cnt%20==1:
-            all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+            all_msgs = msg_generator(speaker, all_list, vocab_table_full, padding=True)
             msg_types.append(len(set(all_msgs.values())))
             comp_p, comp_s = compos_cal(all_msgs)
             comp_ps.append(comp_p)
@@ -300,5 +299,5 @@ msg_print_to_file(max_msg_all, save_path)
 
 
 
-#all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+#all_msgs = msg_generator(speaker, all_list, vocab_table_full, padding=True)
 #comp_p, comp_s = compos_cal(all_msgs)

@@ -67,7 +67,7 @@ for i in range(NUM_SYSTEM**ATTRI_SIZE):
     deg_all[key] = value
     if i in valid_list:
         deg_valid[key] = value
-    elif i in train_list:
+    elif i in all_list:
         deg_train[key] = value
     # ==== For spk training version
     msg_list.append(value_to_onehot(value, char_mapping))
@@ -109,7 +109,7 @@ comp, _, _ = compos_cal_inner(holi_spk_train['msg'],holi_spk_train['data'])
 print('Holi comp is: '+ str(comp))
 
 # ========== Holistic language2 ===================
-PERM2 = 50
+PERM2 = 50#20#50
 holi_spk_train2 = {}
 new_idx2 = comp_spk_train['data']
 perm = torch.randperm(PERM2)
@@ -122,7 +122,7 @@ comp, _, _ = compos_cal_inner(holi_spk_train2['msg'],holi_spk_train2['data'])
 print('Holi2 comp is: '+ str(comp))
 
 # ========== Holistic language3 ===================
-PERM3 = 35
+PERM3 = 36#10#35
 holi_spk_train3 = {}
 new_idx3 = comp_spk_train['data']
 perm = torch.randperm(PERM3)
