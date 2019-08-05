@@ -112,10 +112,11 @@ def smooth_rwd(rwd,ratio=10):
 
 fig_rwd2 = plt.figure(figsize=(6,4))
 ax = fig_rwd2.add_subplot(1,1,1)
-ax.plot(smooth_rwd(np.asarray(acc_comp),3),label=r'$\rho$'+'=1.0')
-ax.plot(smooth_rwd(np.asarray(acc_holi3),3),label=r'$\rho$'+'=0.85')
-ax.plot(smooth_rwd(np.asarray(acc_holi2),3),label=r'$\rho$'+'=0.62')
-ax.plot(smooth_rwd(np.asarray(acc_holi),3),label=r'$\rho$'+'=0.21')
+x = np.arange(0,1000,1)
+ax.plot(x,smooth_rwd(np.asarray(acc_comp),3),label=r'$\rho$'+'=1.0')
+ax.plot(x,smooth_rwd(np.asarray(acc_holi3),3),label=r'$\rho$'+'=0.85')
+ax.plot(x,smooth_rwd(np.asarray(acc_holi2),3),label=r'$\rho$'+'=0.62')
+ax.plot(x,smooth_rwd(np.asarray(acc_holi),3),label=r'$\rho$'+'=0.21')
 plt.legend()
 
 plt.xlabel('Number of pre-train rounds',fontsize=16)

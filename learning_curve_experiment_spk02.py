@@ -118,7 +118,7 @@ comp_holi_std3 = np.asarray(comp_holi3).reshape(800,1).std(1)
 fig_rwd2 = plt.figure(figsize=(6,4))
 ax = fig_rwd2.add_subplot(1,1,1)
 
-x = np.arange(0,800)*50
+x = np.arange(0,800)*10
 #ax.plot(x,comp_comp_avg,label='Rho = 1.0',color='blue')
 ax.plot(x,smooth_rwd(comp_holi_avg3,4),label=r'$\rho$'+'=0.46',color='blue')
 ax.plot(x,smooth_rwd(comp_holi_avg2,4),label=r'$\rho$'+'=0.35',color='green')
@@ -131,7 +131,7 @@ ax.fill_between(x, comp_holi_avg - 2*comp_holi_std, comp_holi_avg+2*comp_holi_st
 ax.legend()
 #ax.show()
 
-plt.xlabel('Number of rounds',fontsize=16)
+plt.xlabel('Number of pre-train rounds',fontsize=16)
 plt.ylabel('Topological similarity:'+r'$\rho$',fontsize=16)
 ax.legend(fontsize=14)
 ax.grid('on')
