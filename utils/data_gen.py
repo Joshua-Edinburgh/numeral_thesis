@@ -48,9 +48,8 @@ def batch_data_gen(device=DEVICE):
     # shape of batch: 36 * 3 * 100 * 50
     img_batch = build_img_tensors(imgs, device=device)
 
-    # TODO: comfirm the shape of the following vector
     # SEL_CANDID is the number of candidates
-    sel_idx = np.random.randint(0, high=SEL_CANDID, size=(len(imgs), 1))
+    sel_idx = np.random.randint(0, high=SEL_CANDID, size=(len(imgs)))
 
     candidates = []
     for i in range(SEL_CANDID):
@@ -58,8 +57,10 @@ def batch_data_gen(device=DEVICE):
 
     candidates = torch.stack(candidates).to(device)
     # TODO: verify this operation
-    candidates[sel_idx] = img_batch
     candidates.transpose_(0, 1)
+    select_idx = torch.from_numpy(sel_idx).to(device).to(torch.long)
+    for i in range(len(imgs)):
+        candidates[i, sel_idx[i], :, :] = img_batch[i, :, :]
 
     ret['data'] = img_batch
     ret['sel_idx'] = sel_idx # is numpy array
