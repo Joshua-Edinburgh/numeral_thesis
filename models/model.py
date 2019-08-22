@@ -106,11 +106,11 @@ class MsgGenLSTM(nn.Module):
         '''        
         batch_size = h_0.size(0)
         #decoder_input = self.init_input.expand(batch_size, -1)
-        decoder_input = torch.zeros((batch_size,self.input_size))
+        decoder_input = torch.zeros((batch_size,self.input_size)).to(DEVICE)
         decoder_hidden = h_0.squeeze(1)
         decoder_cell = c_0.squeeze(1)
         message = []
-        entropy = torch.zeros((batch_size,))
+        entropy = torch.zeros((batch_size,)).to(DEVICE)
         digits = []
         
         log_probs = 0.        

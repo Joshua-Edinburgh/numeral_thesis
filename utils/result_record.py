@@ -8,6 +8,7 @@ Created on Thu Jun 20 10:51:54 2019
 
 from utils.conf import *
 import pandas as pd
+import os
 
 vocab_table_full = [chr(97+int(v)) for v in range(26)]
 #vocab_table_full[-1] = '@'
@@ -70,23 +71,35 @@ def one_msg_translator(one_msg, vocab_table_full, padding=True):
     '''
     max_len, vocab_len = one_msg.shape
     vocab_table = vocab_table_full[:vocab_len]
-    #vocab_table[-1] = vocab_table_full[-1]
     
-    stop_flag = False
     sentence = []
     for i in range(max_len):
         voc_idx = one_msg[i].argmax()
         tmp_word = vocab_table[voc_idx]
-        
-        if tmp_word == vocab_table[-1]:
-            stop_flag = True
-        if padding == False and stop_flag:            
-            break
-        if padding == True and stop_flag:
-            tmp_word = vocab_table[-1]
         sentence.append(tmp_word)
     
     return ''.join(sentence)
+
+
+def msg_generator_sample(speaker, object_list, vocab_table_full, padding=True):
+    '''
+        Use this function to generate messages for all items in object_list. 
+        Padding is to control whether msg have the same length.
+    '''
+    with torch.no_grad():
+        speaker.train()
+        all_msg = {}
+        
+        all_batch = np.asarray(object_list)
+        msgs, _, _, _ = speaker(all_batch)
+    
+        msgs = msgs.transpose(0,1)
+        for i in range(msgs.shape[0]):
+            key = num_to_tup(object_list[i])
+            value = one_msg_translator(msgs[i], vocab_table_full, True)
+            all_msg[key] = value
+        
+        return all_msg
 
 
 def msg_generator(speaker, object_list, vocab_table_full, padding=True):
@@ -117,7 +130,7 @@ def compos_cal_inner(msg, train_batch):
         value = one_msg_translator(msg[i], vocab_table_full, True)
         all_msg[key] = value
     comp_p, comp_s = compos_cal(all_msg)
-    return comp_p, comp_s
+    return comp_p, comp_s, all_msg
     
 
 def compos_cal(msg):
@@ -162,7 +175,56 @@ def compos_cal(msg):
      
     return corr_pearson, corr_spearma
 
+
+def msg_print_to_file(msg_all, path):
+    '''
+        Given the msg_all dictionary, write it down to the file
+    '''
+    if not os.path.exists(path):
+        os.mkdir(path)
+    save_path = path+'msg_all.txt'
+
+    with open(save_path,'a') as f:
+        for i in range(NUM_SYSTEM+1):
+            line = ''
+            for j in range(NUM_SYSTEM+1):
+                if i==0:
+                    line = line + str(j)+'\t'
+                elif j==0:
+                    line = line + str(i)+'\t'
+                else:
+                    key = (str(j-1),str(i-1))
+                    tmp = msg_all[key]
+                    line = line + tmp+'\t'
+            f.write(line+'\n')
+        
+def smooth(matrix, ratio=20):
+    '''
+        Smooth the matrix according rows
+    '''
+    new_matrix = np.zeros(matrix.shape)
+    for i in range(matrix.shape[0]):
+        tmp = 0
+        for j in range(matrix.shape[1]):
+            tmp = (1-1/ratio)*tmp + 1/ratio*matrix[i,j]
+            new_matrix[i,j] = tmp
+    return new_matrix
+
 '''
+histo_list = []
+for comp_list in comp_generations:
+    tmp_histo = np.histogram(comp_list, bins=5)[0]
+    histo_list.append(tmp_histo)
+
+histo_matrix = np.asarray(histo_list).transpose()
+smoth_matrix = smooth(histo_matrix,20)
+
+for i in range (5):
+    tmp = str(i*2/10)
+    plt.plot(smoth_matrix[i,:],label='Rho= '+tmp)
+plt.legend()
+plt.show()
+
 msg = {}   
 # === Degenerate =====   
 msg['000'] = ['aaa']       

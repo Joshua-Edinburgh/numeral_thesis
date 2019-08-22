@@ -34,18 +34,19 @@ def key_to_value(key, char_mapping,comp = True):
     '''
         Generate value based on key. Now only for NUM_SYSTEM=10, ATTRI_SIZE=2
     '''
+    key[0]
     tmp = ''.join([s for s in key])
     int_key = int(tmp)
-    dig_0 = np.mod(int_key, NUM_SYSTEM)
-    dig_1 = np.mod(int(int_key/NUM_SYSTEM), NUM_SYSTEM)
-    dig_2 = np.mod(int(int_key/NUM_SYSTEM**2), NUM_SYSTEM)
+    dig_0 = int(key[0])
+    dig_1 = int(key[1])
+    #dig_2 = np.mod(int(int_key/NUM_SYSTEM**2), NUM_SYSTEM)
     value = []
     if comp == True:
-        value.append(char_mapping[dig_2])
+        #value.append(char_mapping[dig_2])
         value.append(char_mapping[dig_1])
         value.append(char_mapping[dig_0])
     else:
-        value.append(char_mapping[np.random.randint(0,len(char_mapping))])
+        #value.append(char_mapping[np.random.randint(0,len(char_mapping))])
         value.append(char_mapping[np.random.randint(0,len(char_mapping))])
         value.append(char_mapping[np.random.randint(0,len(char_mapping))])
         
@@ -80,8 +81,6 @@ deg_spk_train['msg'] = torch.stack(msg_list).transpose(0,1)
         
 # ========== Compositional language ===================
 comp_all = {}
-comp_train = {}
-comp_valid = {}
 
 comp_spk_train = {}  # Data for spk training, 'data' should be dicimal, 'msg' one hot
 data_list = []
@@ -91,22 +90,54 @@ for i in range(NUM_SYSTEM**ATTRI_SIZE):
     key = num_to_tup(i)
     value = key_to_value(key, char_mapping, True)
     comp_all[key] = value
-    if i in valid_list:
-        comp_valid[key] = value
-    elif i in train_list:
-        comp_train[key] = value
     # ==== For spk training version
     msg_list.append(value_to_onehot(value, char_mapping))
     data_list.append(i)
 
 comp_spk_train['data'] = np.asarray(data_list)
 comp_spk_train['msg'] = torch.stack(msg_list).transpose(0,1)
+print('Comp comp is: '+ str(compos_cal(comp_all)))
 #compos_cal(comp_all)   # Should approximate 1.
 
 # ========== Holistic language ===================
+holi_spk_train = {}
+new_idx = torch.randperm(64)
+holi_spk_train['data'] = comp_spk_train['data']
+holi_spk_train['msg'] = comp_spk_train['msg'][:,new_idx,:]
+
+comp, _, _ = compos_cal_inner(holi_spk_train['msg'],holi_spk_train['data'])
+print('Holi comp is: '+ str(comp))
+
+# ========== Holistic language2 ===================
+PERM2 = 50
+holi_spk_train2 = {}
+new_idx2 = comp_spk_train['data']
+perm = torch.randperm(PERM2)
+new_idx2 = torch.cat((perm, torch.tensor(new_idx2[PERM2:])),0)
+
+holi_spk_train2['data'] = comp_spk_train['data']
+holi_spk_train2['msg'] = comp_spk_train['msg'][:,new_idx2,:]
+
+comp, _, _ = compos_cal_inner(holi_spk_train2['msg'],holi_spk_train2['data'])
+print('Holi2 comp is: '+ str(comp))
+
+# ========== Holistic language3 ===================
+PERM3 = 35
+holi_spk_train3 = {}
+new_idx3 = comp_spk_train['data']
+perm = torch.randperm(PERM3)
+new_idx3 = torch.cat((perm, torch.tensor(new_idx3[PERM3:])),0)
+
+holi_spk_train3['data'] = comp_spk_train['data']
+holi_spk_train3['msg'] = comp_spk_train['msg'][:,new_idx3,:]
+
+comp, _, _ = compos_cal_inner(holi_spk_train3['msg'],holi_spk_train3['data'])
+print('Holi3 comp is: '+ str(comp))
+
+
+"""
+# ========== Holistic language ===================
 holi_all = {}
-holi_train = {}
-holi_valid = {}
 
 holi_spk_train = {}  # Data for spk training, 'data' should be dicimal, 'msg' one hot
 data_list = []
@@ -121,10 +152,6 @@ for i in range(NUM_SYSTEM**ATTRI_SIZE):
     key = key_all_list[i]
     value = value_all_list[i]
     holi_all[key] = value
-    if i in valid_list:
-        holi_valid[key] = value
-    elif i in train_list:
-        holi_train[key] = value
     # ==== For spk training version
     msg_list.append(value_to_onehot(value, char_mapping))
     data_list.append(i)    
@@ -132,6 +159,7 @@ for i in range(NUM_SYSTEM**ATTRI_SIZE):
 holi_spk_train['data'] = np.asarray(data_list)
 holi_spk_train['msg'] = torch.stack(msg_list).transpose(0,1)
 #compos_cal(holi_all)    # Should be smaller than 1
+"""
 
 
 
@@ -152,6 +180,13 @@ def get_lis_curve_msg(lis_curve_batch_ls, language_train):
         msg_list.append(tmp_msg)
     lis_train['msg'] = torch.stack(msg_list).transpose(0,1)
     return lis_train 
+
+
+
+#comp_p,_, all_msg = compos_cal_inner(comp_spk_train['msg'],comp_spk_train['data'])
+
+
+
 
 
 '''
