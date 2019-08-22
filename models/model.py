@@ -50,31 +50,25 @@ class DataEncoderMLP(nn.Module):
             test_forward = t.forward(train_batch)
     '''
     def __init__(self, hidden_size=HIDDEN_SIZE):
-        super(DataEncoderMLP, self).__init__()
+        super().__init__()
         self.hidden_size = hidden_size
-        self.emb_size = ATTRI_SIZE*NUM_SYSTEM
 
-        self.lin = nn.Sequential(
-            nn.Linear(self.emb_size, hidden_size),  # We concatenate two vectors
-            nn.ReLU()
-        )    
+        # input has to be 3 channels
+        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.conv2 = nn.Conv2d(6, 16, 5)
         
-    def gen_embedding(self, data_batch):
-        '''
-            Change [N_B,1] data to [NB,1,ATTRI_SIZE*NUM_SYSTEM] tensor
-        '''
-        batch_size = data_batch.shape[0]
-        data_embeddings = np.zeros((batch_size, 1, self.emb_size))
-        for b in range(batch_size):
-            for i in range(ATTRI_SIZE):
-                tmp = int(np.mod(data_batch[b] / (NUM_SYSTEM**i), NUM_SYSTEM))
-                index = int(tmp + NUM_SYSTEM*i)
-                data_embeddings[b, 0, index] = 1.                
-        return torch.tensor(data_embeddings).float().to(DEVICE)
+        # the following size is only feasible for images with size 3*100*50
+        self.fc1 = nn.Linear(16 * 22 * 9, 1024)
+        self.fc2 = nn.Linear(1024, self.hidden_size)
     
     def forward(self, data_batch):
-        data_embeddings = self.gen_embedding(data_batch)               
-        return self.lin(data_embeddings) 
+        x = F.max_pool2d(F.relu(self.conv1(data_batch)), (2, 2))
+        # If the size is a square you can only specify a single number
+        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
+        x = x.view(-1, 16 * 22 * 9)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
 
 
 class MsgGenLSTM(nn.Module):

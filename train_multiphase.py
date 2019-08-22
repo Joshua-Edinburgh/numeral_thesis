@@ -12,10 +12,10 @@ listener = ListeningAgent().to(DEVICE)
 spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
 lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
-valid_full, valid_candidates, sel_idx_val = valid_data_gen()
+valid_full, valid_candidates, sel_idx_val = batch_data_gen()
 batch_list = batch_data_gen()
 
-def cal_correct_preds(data_batch, data_candidate, pred_idx):
+def cal_correct_preds(data_batch, data_candidate, gold_idx, pred_idx):
     '''
         Use to calculate the reward or the valid accuracy. As it is possible that
         there are multiple same elements in one row of data_candidate, we will
@@ -25,7 +25,7 @@ def cal_correct_preds(data_batch, data_candidate, pred_idx):
     cnt_correct = 0
     idx_correct = torch.zeros((batch_size,)).to(DEVICE)
     for i in range(batch_size):
-        if data_candidate[i][pred_idx[i]]==data_batch[i]:
+        if torch.equal(pred_idx[i], gold_idx[i]):
             cnt_correct += 1
             idx_correct[i] = 1
     return cnt_correct, idx_correct
@@ -80,7 +80,7 @@ def train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, train_batch, t
     spk_optimizer.zero_grad()
     lis_optimizer.zero_grad()
 
-    true_idx = torch.tensor(sel_idx_train).to(DEVICE)
+    
 
             # =========== Forward process =======
     msg, spk_log_prob, spk_entropy, _ = speaker(train_batch)
@@ -88,7 +88,8 @@ def train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, train_batch, t
     lis_entropy = -(F.softmax(pred_vector)*F.log_softmax(pred_vector)).sum(dim=1)
     lis_log_prob = F.log_softmax(pred_vector.max(dim=1)[0])
     pred_idx = F.softmax(pred_vector).argmax(dim=1)
-    reward, reward_vector = cal_correct_preds(train_batch, train_candidates, pred_idx)
+    true_idx = torch.tensor(sel_idx_train).squeeze().to(DEVICE).to(pred_idx.dtype)
+    reward, reward_vector = cal_correct_preds(train_batch, train_candidates, true_idx, pred_idx)
 
 
     if rwd_comp == True:
@@ -103,22 +104,8 @@ def train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, train_batch, t
     if MSG_MODE == 'REINFORCE':
         spk_loss = -((reward_vector.detach()*spk_log_prob).mean() + 0.1*exp_ratio*spk_entropy.mean())
         spk_loss.backward()
-    elif MSG_MODE == 'SCST':
-        speaker.eval()
-        listener.eval()
-
-        msg_, spk_log_prob_, _, _ = speaker(train_batch)
-        pred_vector_ = listener(train_candidates, msg_)
-        pred_idx_ = F.softmax(pred_vector_).argmax(dim=1)
-        _, reward_vector_ = cal_correct_preds(train_batch, train_candidates, pred_idx_)
-
-        speaker.train()
-        listener.train()
-
-        spk_loss = -(((reward_vector.detach()-reward_vector_.detach())*spk_log_prob).mean() + 0.1*spk_entropy.mean())
-        spk_loss.backward()
-    elif MSG_MODE == 'GUMBEL':
-        spk_loss = lis_loss
+    else:
+        raise NotImplementedError
 
             # Clip gradients: gradients are modified in place
     nn.utils.clip_grad_norm_(speaker.parameters(), clip)
@@ -159,7 +146,8 @@ def train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train
         if rwd_filter == True:
             pred_vector = listener(train_candidates, msg)
             pred_idx = F.softmax(pred_vector).argmax(dim=1)
-            _, rewards = cal_correct_preds(train_batch, train_candidates, pred_idx)
+            true_idx = torch.tensor(sel_idx_train).squeeze().to(DEVICE).to(pred_idx.dtype)
+            _, rewards = cal_correct_preds(train_batch, train_candidates, true_idx, pred_idx)
 
             msg = msg.transpose(0,1)    # Change the size to [N_B, ATTRI_SIZE, MSG_VOCSIZE]
             new_msg = []
@@ -221,7 +209,7 @@ for i in range(80):
         phB_cnt += 1
         if phB_cnt%4==1:
             batch_list = batch_data_gen()
-            train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
+            train_batch, train_candidates, sel_idx_train = batch_list['data'], batch_list['candidates'], batch_list['sel_idx']
 
         if phB_cnt<=args.phLP:
             reward, spk_loss, lis_loss = train_phaseB(speaker, listener, spk_optimizer, lis_optimizer,
@@ -248,22 +236,22 @@ for i in range(80):
         '''
         print('Gen.%d ==PhaseB==Round %d, rwd (%d, %d), spk_loss %.4f, lis_loss %.4f'%(i,phB_cnt,reward, rwd_avg20, spk_loss, lis_loss))
 
-        if phB_cnt%20==1:
-            all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
-            msg_types.append(len(set(all_msgs.values())))
-            comp_p, comp_s = compos_cal(all_msgs)
-            comp_ps.append(comp_p)
-            comp_ss.append(comp_s)
-            if comp_p>=max_comp:
-                max_comp = comp_p
-                max_msg_all = all_msgs
+        # if phB_cnt%20==1:
+        #     all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
+        #     msg_types.append(len(set(all_msgs.values())))
+        #     comp_p, comp_s = compos_cal(all_msgs)
+        #     comp_ps.append(comp_p)
+        #     comp_ss.append(comp_s)
+        #     if comp_p>=max_comp:
+        #         max_comp = comp_p
+        #         max_msg_all = all_msgs
 
     # ====================== Record of language ===================================
     data_list = []
     comp_list = []
     for c in range(2000):
         batch_list = batch_data_gen()
-        train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
+        train_batch, train_candidates, sel_idx_train = batch_list['data'], batch_list['candidates'], batch_list['sel_idx']
         data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = True)
         data_list.append(data_for_spk)
         comp_list.append(compos_cal_inner(data_for_spk['msg'],data_for_spk['data'])[0])
