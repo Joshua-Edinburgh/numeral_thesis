@@ -83,23 +83,9 @@ def train_epoch(speaker, listener, spk_optimizer, lis_optimizer, train_batch, tr
     
     if MSG_MODE == 'REINFORCE':
         spk_loss = -((reward_vector.detach()*spk_log_prob).mean() + 0.1*spk_entropy.mean())
-        spk_loss.backward()
-    elif MSG_MODE == 'SCST':
-        speaker.eval()
-        listener.eval()
-        
-        msg_, spk_log_prob_, _ = speaker(train_batch)
-        pred_vector_ = listener(train_candidates, msg_)
-        pred_idx_ = F.softmax(pred_vector_).argmax(dim=1)
-        _, reward_vector_ = cal_correct_preds(train_batch, train_candidates, pred_idx_)
-        
-        speaker.train()
-        listener.train()
-        
-        spk_loss = -(((reward_vector.detach()-reward_vector_.detach())*spk_log_prob).mean() + 0.1*spk_entropy.mean())
-        spk_loss.backward()                    
-    elif MSG_MODE == 'GUMBEL':
-        spk_loss = lis_loss
+        spk_loss.backward()              
+    else:
+        raise NotImplementedError
 
             # Clip gradients: gradients are modified in place
     nn.utils.clip_grad_norm_(speaker.parameters(), clip)

@@ -59,7 +59,8 @@ def num_to_tup(num, length=ATTRI_SIZE, num_sys = NUM_SYSTEM):
     tmp_list = []
     
     for i in range(ATTRI_SIZE):
-        index = int(np.mod(num / (NUM_SYSTEM**i), NUM_SYSTEM))
+        # TODO: change the method of calculating compositionality
+        index = int(np.mod(num.cpu() / (NUM_SYSTEM**i), NUM_SYSTEM))
         tmp_list.append(str(index))      
     tmp_list.reverse()
     return tuple([s for s in tmp_list])
