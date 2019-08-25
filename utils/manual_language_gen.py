@@ -52,6 +52,8 @@ def key_to_value(key, char_mapping,comp = True):
         
     return ''.join(value)
 
+
+
 # ========== Degenerate language ===================
 deg_all = {}
 deg_train = {}
@@ -135,31 +137,24 @@ comp, _, _ = compos_cal_inner(holi_spk_train3['msg'],holi_spk_train3['data'])
 print('Holi3 comp is: '+ str(comp))
 
 
-"""
-# ========== Holistic language ===================
-holi_all = {}
-
-holi_spk_train = {}  # Data for spk training, 'data' should be dicimal, 'msg' one hot
-data_list = []
+# ========== Read language from txt ===================
+path = 'exp_results/test_both_spk_and_lis/msg_all.txt'
+read_spk_train = {}
+cnt = 0
+all_messages = []
 msg_list = []
-
-key_all_list = list(comp_all.keys())
-value_all_list = list(comp_all.values())
-random.shuffle(value_all_list)
-
-for i in range(NUM_SYSTEM**ATTRI_SIZE):
-    # ===== For dictionary version
-    key = key_all_list[i]
-    value = value_all_list[i]
-    holi_all[key] = value
-    # ==== For spk training version
-    msg_list.append(value_to_onehot(value, char_mapping))
-    data_list.append(i)    
-
-holi_spk_train['data'] = np.asarray(data_list)
-holi_spk_train['msg'] = torch.stack(msg_list).transpose(0,1)
-#compos_cal(holi_all)    # Should be smaller than 1
-"""
+with open(path,'r') as f:
+    for lines in f:
+        for i in range(8):
+            cnt += 1
+            if cnt > 8:
+                #all_messages.append(lines.split()[i+1])
+                msg_list.append(value_to_onehot(lines.split()[i+1], char_mapping))
+                
+read_spk_train['data'] = comp_spk_train['data']
+read_spk_train['msg'] = torch.stack(msg_list).transpose(0,1)
+comp, _, _ = compos_cal_inner(read_spk_train['msg'],read_spk_train['data'])
+print('Txt comp is: '+ str(comp))
 
 
 

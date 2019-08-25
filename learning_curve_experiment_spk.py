@@ -65,7 +65,8 @@ acc_holi3 = []
 acc_holi_avg20, acc_holi2_avg20, acc_holi3_avg20, acc_comp_avg20 = 0, 0,0,0
 shuf_pairs_holi = pair_gen([holi_spk_train], phA_rnds = 100, sub_batch_size = 1)
 shuf_pairs_holi2 = pair_gen([holi_spk_train2], phA_rnds = 100, sub_batch_size = 1)
-shuf_pairs_holi3 = pair_gen([holi_spk_train3], phA_rnds = 100, sub_batch_size = 1)
+#shuf_pairs_holi3 = pair_gen([holi_spk_train3], phA_rnds = 100, sub_batch_size = 1)
+shuf_pairs_holi3 = pair_gen([read_spk_train], phA_rnds = 100, sub_batch_size = 1)
 shuf_pairs_comp = pair_gen([comp_spk_train], phA_rnds = 100, sub_batch_size = 1)
 
 for i in range(3000):
@@ -87,6 +88,7 @@ for i in range(3000):
     if i%50 == 1:
         print('Round %d, holi acc is %.4f, comp acc is %.4f'%(i,acc_holi[-1],acc_comp[-1]))
         
+
 fig_rwd2 = plt.figure(figsize=(6,4))
 ax = fig_rwd2.add_subplot(1,1,1)
 
@@ -103,8 +105,25 @@ ax.legend(fontsize=14)
 ax.grid('on')
 fig_rwd2.tight_layout()
 fig_rwd2.savefig('Figures/Learning_spd_spk.pdf')
+'''
 
+fig_rwd2 = plt.figure(figsize=(6,4))
+# ax = fig_rwd2.add_subplot(1,1,1)
 
+plt.plot(acc_comp,label='compositional')
+plt.plot(acc_holi3,label='emergent')
+#ax.plot(acc_holi2,label=r'$\rho$'+'=0.62')
+plt.plot(acc_holi,label='holistic')
+plt.legend()
+#ax.show()
 
+plt.xlabel('Number of epochs',fontsize=16)
+plt.ylabel('Training accuracy',fontsize=16)
+plt.legend(fontsize=14)
+#plt.grid('on')
+#plt.show()
+#plt.tight_layout()
+plt.savefig('../Figures/shawn.pdf')
+'''
 
 
