@@ -91,10 +91,11 @@ def train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, train_batch, t
     true_idx = torch.tensor(sel_idx_train).squeeze().to(DEVICE).to(pred_idx.dtype)
     reward, reward_vector = cal_correct_preds(train_batch, train_candidates, true_idx, pred_idx)
 
-
+    """
     if rwd_comp == True:
         comp_p, comp_s = compos_cal_inner(msg, train_batch)
         reward_vector *= comp_p
+    """
 
             # ========== Perform backpropatation ======
     #lis_loss = lis_loss_fun(pred_vector, true_idx.long().detach())
@@ -248,15 +249,14 @@ for i in range(80):
 
     # ====================== Record of language ===================================
     data_list = []
-    comp_list = []
-    for c in range(2000):
+
+    for c in range(100):
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list['data'], batch_list['candidates'], batch_list['sel_idx']
         data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = True)
         data_list.append(data_for_spk)
-        comp_list.append(compos_cal_inner(data_for_spk['msg'],data_for_spk['data'])[0])
         print('Gen.%d @@PhaseC@@, round %d'%(i,c))
-    comp_generations.append(comp_list)
+
 
 
     # ====================== Phase C ===================================
@@ -272,7 +272,7 @@ for i in range(80):
         acc = train_phaseA(speaker, spk_optimizer, data_for_spk)
         acc_avg20 = (1-0.05)*acc_avg20 + 0.05*acc
         print('Gen.%d @@PhaseA@@, round is %d, acc is %.4f, acc_avg20 is %.4f'%(i,phA_cnt, acc,acc_avg20))
-        print(comp_ps[-1])
+        # print(comp_ps[-1])
 
 if not os.path.exists('exp_results'):
     os.mkdir('exp_results')

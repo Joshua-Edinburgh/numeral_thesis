@@ -7,6 +7,7 @@ Created on Thu Jun 20 10:03:06 2019
 """
 import sys
 sys.path.append("..")
+import copy
 from utils.conf import *
 
 
@@ -33,7 +34,7 @@ def generate_one_distractor(batch, device=DEVICE):
     while not (original_idx == new_idx).sum().eq(0):
         new_idx = torch.randperm(batch_size, device=device)
 
-    shuffled_batch = batch[new_idx]
+    shuffled_batch = copy.deepcopy(batch[new_idx])
 
     return shuffled_batch
 
@@ -67,6 +68,23 @@ def batch_data_gen(device=DEVICE):
     ret['candidates'] = candidates
 
     return ret
+
+def pair_gen(data_list, phA_rnds = 100, sub_batch_size = 1):
+    batch_size = data_list[0]['data'].shape[0]
+    indices = random.choices(range(batch_size * len(data_list)), k=phA_rnds)
+
+    assert sub_batch_size == 1
+
+    new_data_list = []
+    for idx in indices:
+        batch_idx = idx // batch_size
+        in_batch_idx = idx % batch_size
+        new_item = {}
+        new_item['data'] = data_list[batch_idx]['data'][in_batch_idx:in_batch_idx+1]
+        new_item['msg'] = data_list[batch_idx]['msg'][:, in_batch_idx:in_batch_idx+1]
+        new_data_list.append(new_item)
+    
+    return new_data_list
 
 if __name__ == '__main__':
     batch_data_gen()
