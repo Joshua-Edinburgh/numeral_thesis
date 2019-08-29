@@ -42,9 +42,17 @@ def generate_one_distractor(batch, device=DEVICE):
 def batch_data_gen(device=DEVICE):
     ret = {}
 
-    _, imgs = load_img_set('./data/img_set/')
+    # _, imgs = load_img_set('./data/img_set/')
+    # c = random.shuffle(imgs)
+    img_names, imgs = load_img_set('./data/img_set/')
+    img_names = [name.split('.')[0] for name in img_names]
 
-    c = random.shuffle(imgs)
+    assert len(img_names) == len(imgs)
+    c = list(zip(img_names, imgs))
+    random.shuffle(c)
+    img_names, imgs = zip(*c)
+    img_names = list(img_names)
+    imgs = list(imgs)
 
     # shape of batch: 36 * 3 * 100 * 50
     img_batch = build_img_tensors(imgs, device=device)
@@ -66,6 +74,7 @@ def batch_data_gen(device=DEVICE):
     ret['data'] = img_batch
     ret['sel_idx'] = sel_idx # is numpy array
     ret['candidates'] = candidates
+    ret['label'] = img_names
 
     return ret
 

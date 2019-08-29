@@ -9,6 +9,7 @@ Created on Thu Jun 20 10:51:54 2019
 from utils.conf import *
 import pandas as pd
 import os
+from utils.data_gen import batch_data_gen
 
 vocab_table_full = [chr(97+int(v)) for v in range(26)]
 #vocab_table_full[-1] = '@'
@@ -52,75 +53,77 @@ def edit_dist(str1, str2):
     return DM[-1]
 
 
-def num_to_tup(num, length=ATTRI_SIZE, num_sys = NUM_SYSTEM):
+def label_to_tup(label, length=ATTRI_SIZE, num_sys = NUM_SYSTEM):
     '''
-        Manually change 0 to '000' to ('0', '0', '0'). 
+        Manually change '01' to ('0', '1'). 
     '''
-    tmp_list = []
-    
-    for i in range(ATTRI_SIZE):
-        # TODO: change the method of calculating compositionality
-        index = int(np.mod(num.cpu() / (NUM_SYSTEM**i), NUM_SYSTEM))
-        tmp_list.append(str(index))      
-    tmp_list.reverse()
-    return tuple([s for s in tmp_list])
+    assert length == 2
+    assert num_sys == 6
+    return tuple([s for s in label])
 
 
-def one_msg_translator(one_msg, vocab_table_full, padding=True):
+def one_msg_translator(one_msg, vocab_table_full):
     '''
         Translate the message [MAX_LEN, VOCAB+1] to [MAX_LEN] sentence
+        one_msg: torch.tensor;
+        vocab_table_full: dict;
+        return: 'ab'
     '''
     max_len, vocab_len = one_msg.shape
-    vocab_table = vocab_table_full[:vocab_len]
+    vocab_table = vocab_table_full
     
     sentence = []
     for i in range(max_len):
-        voc_idx = one_msg[i].argmax()
+        voc_idx = one_msg[i].argmax().item()
         tmp_word = vocab_table[voc_idx]
         sentence.append(tmp_word)
     
     return ''.join(sentence)
 
 
-def msg_generator_sample(speaker, object_list, vocab_table_full, padding=True):
+def msg_generator_sample(speaker, vocab_table_full):
     '''
         Use this function to generate messages for all items in object_list. 
         Padding is to control whether msg have the same length.
     '''
+    all_msg = {}
+    
     with torch.no_grad():
         speaker.train()
-        all_msg = {}
-        
-        all_batch = np.asarray(object_list)
+        batch_list = batch_data_gen()
+        all_batch  = batch_list['data']
+        label = batch_list['label']
+
         msgs, _, _, _ = speaker(all_batch)
-    
         msgs = msgs.transpose(0,1)
         for i in range(msgs.shape[0]):
-            key = num_to_tup(object_list[i])
-            value = one_msg_translator(msgs[i], vocab_table_full, True)
+            key = label_to_tup(label[i])
+            value = one_msg_translator(msgs[i], vocab_table_full)
             all_msg[key] = value
-        
+
         return all_msg
 
 
-def msg_generator(speaker, object_list, vocab_table_full, padding=True):
+def msg_generator(speaker, vocab_table_full):
     '''
         Use this function to generate messages for all items in object_list. 
         Padding is to control whether msg have the same length.
     '''
+    all_msg = {}
+
     with torch.no_grad():
         speaker.eval()
-        all_msg = {}
-        
-        all_batch = np.asarray(object_list)
+        batch_list = batch_data_gen()
+        all_batch  = batch_list['data']
+        label = batch_list['label']
+
         msgs, _, _, _ = speaker(all_batch)
-    
         msgs = msgs.transpose(0,1)
         for i in range(msgs.shape[0]):
-            key = num_to_tup(object_list[i])
-            value = one_msg_translator(msgs[i], vocab_table_full, True)
+            key = label_to_tup(label[i])
+            value = one_msg_translator(msgs[i], vocab_table_full)
             all_msg[key] = value
-        
+
         return all_msg
 
 def compos_cal_inner(msg, train_batch):

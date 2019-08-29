@@ -12,7 +12,8 @@ listener = ListeningAgent().to(DEVICE)
 spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
 lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
-valid_full, valid_candidates, sel_idx_val = batch_data_gen()
+valid_batch_list = batch_data_gen()
+valid_full, valid_candidates, sel_idx_val = valid_batch_list['data'], valid_batch_list['candidates'], valid_batch_list['sel_idx']
 batch_list = batch_data_gen()
 
 def cal_correct_preds(data_batch, data_candidate, gold_idx, pred_idx):
@@ -195,7 +196,14 @@ msg_types = []
 valid_accs = []
 comp_generations = []
 max_comp = 0
-
+vocab_table_full = {
+    0: 'a',
+    1: 'b',
+    2: 'c',
+    3: 'd',
+    4: 'e', 
+    5: 'f',
+}
 
 
 for i in range(80):
@@ -237,15 +245,14 @@ for i in range(80):
         '''
         print('Gen.%d ==PhaseB==Round %d, rwd (%d, %d), spk_loss %.4f, lis_loss %.4f'%(i,phB_cnt,reward, rwd_avg20, spk_loss, lis_loss))
 
-        # if phB_cnt%20==1:
-        #     all_msgs = msg_generator(speaker, train_list, vocab_table_full, padding=True)
-        #     msg_types.append(len(set(all_msgs.values())))
-        #     comp_p, comp_s = compos_cal(all_msgs)
-        #     comp_ps.append(comp_p)
-        #     comp_ss.append(comp_s)
-        #     if comp_p>=max_comp:
-        #         max_comp = comp_p
-        #         max_msg_all = all_msgs
+        if phB_cnt%20==1:
+            all_msgs = msg_generator(speaker, vocab_table_full)
+            comp_p, comp_s = compos_cal(all_msgs)
+            comp_ps.append(comp_p)
+            comp_ss.append(comp_s)
+            if comp_p>=max_comp:
+                max_comp = comp_p
+                max_msg_all = all_msgs
 
     # ====================== Record of language ===================================
     data_list = []
@@ -256,7 +263,7 @@ for i in range(80):
         data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = True)
         data_list.append(data_for_spk)
         print('Gen.%d @@PhaseC@@, round %d'%(i,c))
-
+        
 
 
     # ====================== Phase C ===================================
@@ -272,7 +279,7 @@ for i in range(80):
         acc = train_phaseA(speaker, spk_optimizer, data_for_spk)
         acc_avg20 = (1-0.05)*acc_avg20 + 0.05*acc
         print('Gen.%d @@PhaseA@@, round is %d, acc is %.4f, acc_avg20 is %.4f'%(i,phA_cnt, acc,acc_avg20))
-        # print(comp_ps[-1])
+        print(comp_ps[-1])
 
 if not os.path.exists('exp_results'):
     os.mkdir('exp_results')
