@@ -87,7 +87,7 @@ def msg_generator_sample(speaker, vocab_table_full):
         Padding is to control whether msg have the same length.
     '''
     all_msg = {}
-    
+
     with torch.no_grad():
         speaker.train()
         batch_list = batch_data_gen()
@@ -126,12 +126,12 @@ def msg_generator(speaker, vocab_table_full):
 
         return all_msg
 
-def compos_cal_inner(msg, train_batch):
+def compos_cal_inner(msg, label_list):
     all_msg = {}
     msg = msg.transpose(0,1)
     for i in range(msg.shape[0]):
-        key = num_to_tup(train_batch[i])
-        value = one_msg_translator(msg[i], vocab_table_full, True)
+        key = label_to_tup(label_list[i])
+        value = one_msg_translator(msg[i], vocab_table_full)
         all_msg[key] = value
     comp_p, comp_s = compos_cal(all_msg)
     return comp_p, comp_s, all_msg

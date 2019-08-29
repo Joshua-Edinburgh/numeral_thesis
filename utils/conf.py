@@ -52,7 +52,7 @@ setup_seed(args.seed)   # 12345 is valid for N_B=100, SEL_CAN = 5
 '''
 for training model
 '''
-DEVICE = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 LEARNING_RATE = args.lr # learning rate
 CLIP = 50.0 # max after clipping gradient
 DECODER_LEARING_RATIO = args.lr_ratio

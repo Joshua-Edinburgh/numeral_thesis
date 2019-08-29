@@ -256,14 +256,15 @@ for i in range(80):
 
     # ====================== Record of language ===================================
     data_list = []
-
-    for c in range(100):
+    comp_list = []
+    for c in range(20): # TODO: change back to 500
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list['data'], batch_list['candidates'], batch_list['sel_idx']
         data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = True)
         data_list.append(data_for_spk)
+        comp_list.append(compos_cal_inner(data_for_spk['msg'], batch_list['label'])[0])
         print('Gen.%d @@PhaseC@@, round %d'%(i,c))
-        
+    comp_generations.append(comp_list)
 
 
     # ====================== Phase C ===================================
@@ -281,10 +282,10 @@ for i in range(80):
         print('Gen.%d @@PhaseA@@, round is %d, acc is %.4f, acc_avg20 is %.4f'%(i,phA_cnt, acc,acc_avg20))
         print(comp_ps[-1])
 
-if not os.path.exists('exp_results'):
-    os.mkdir('exp_results')
+if not os.path.exists('exp_results_shawn'):
+    os.mkdir('exp_results_shawn')
 
-save_path = 'exp_results/' + args.path + '/'
+save_path = 'exp_results_shawn/' + args.path + '/'
 if not os.path.exists(save_path):
     os.mkdir(save_path)
 np.save(save_path+'comp_ps.npy', comp_ps)
