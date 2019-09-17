@@ -39,6 +39,7 @@ parser.add_argument('--phA', type=int, default=1200, help='the rounds for phase 
 parser.add_argument('--phB',type=int, default=4000, help='the rounds for phase B')
 parser.add_argument('--phLP',type=int, default=200, help='the rounds for phase pre-train listener')
 parser.add_argument('--path',type=str, default='test', help='the path to save the results')
+parser.add_argument('--valid_num',type=int,default=8,help='size of validation set')
 
 args = parser.parse_args()
 
@@ -67,7 +68,7 @@ NUM_SYSTEM = args.num_sys         # Number system, usually just use decimal
 HIDDEN_SIZE = 128       
 BATCH_SIZE = NUM_SYSTEM**ATTRI_SIZE
 MSG_MAX_LEN = ATTRI_SIZE + 0      # Controlled by ourselves
-VALID_NUM = 8      # Ratio of valid set to train set
+VALID_NUM = 16      # Ratio of valid set to train set
 
 # Size of vocabulary this is available for communication
 MSG_VOCSIZE = NUM_SYSTEM+0

@@ -214,6 +214,17 @@ for i in range(80):
     listener = ListeningAgent().to(DEVICE)
     lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
 
+    data_list = []
+    comp_list = []
+    for c in range(100):
+        batch_list = batch_data_gen()
+        train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
+        data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = True)
+        data_list.append(data_for_spk)
+        comp_list.append(compos_cal_inner(data_for_spk['msg'],data_for_spk['data'])[0])
+        print('Gen.%d @@PhaseC@@, round %d'%(i,c))
+    comp_generations_after.append(comp_list)
+
     rwd_avg20 = 0
     phB_cnt = 0
     decay_explore_ratio = 1
@@ -283,6 +294,17 @@ for i in range(80):
         print('Gen.%d @@PhaseA@@, round is %d, acc is %.4f, acc_avg20 is %.4f'%(i,phA_cnt, acc,acc_avg20))
         print(comp_ps[-1])
 
+    # ====================== Record of language ===================================
+    data_list = []
+    comp_list = []
+    for c in range(100):
+        batch_list = batch_data_gen()
+        train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
+        data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = True)
+        data_list.append(data_for_spk)
+        comp_list.append(compos_cal_inner(data_for_spk['msg'],data_for_spk['data'])[0])
+        print('Gen.%d @@PhaseC@@, round %d'%(i,c))
+    comp_generations_before.append(comp_list)
 
 
 if not os.path.exists('exp_results'):
@@ -295,5 +317,15 @@ np.save(save_path+'comp_ps.npy', comp_ps)
 np.save(save_path+'rewards.npy',rewards)
 np.save(save_path+'msg_types.npy',np.asarray(msg_types))
 np.save(save_path+'comp_generations', np.asarray(comp_generations))
+np.save(save_path+'comp_generations_before', np.asarray(comp_generations_before))
+np.save(save_path+'comp_generations_after', np.asarray(comp_generations_after))
 np.save(save_path+'valid_accs', np.asarray(valid_accs))
 msg_print_to_file(max_msg_all, save_path)
+
+
+
+
+
+
+
+
