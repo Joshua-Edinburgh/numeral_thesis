@@ -65,8 +65,8 @@ acc_holi3 = []
 acc_holi_avg20, acc_holi2_avg20, acc_holi3_avg20, acc_comp_avg20 = 0, 0,0,0
 shuf_pairs_holi = pair_gen([holi_spk_train], phA_rnds = 100, sub_batch_size = 1)
 shuf_pairs_holi2 = pair_gen([holi_spk_train2], phA_rnds = 100, sub_batch_size = 1)
-#shuf_pairs_holi3 = pair_gen([holi_spk_train3], phA_rnds = 100, sub_batch_size = 1)
-shuf_pairs_holi3 = pair_gen([read_spk_train], phA_rnds = 100, sub_batch_size = 1)
+shuf_pairs_holi3 = pair_gen([holi_spk_train3], phA_rnds = 100, sub_batch_size = 1)
+#shuf_pairs_holi3 = pair_gen([read_spk_train], phA_rnds = 100, sub_batch_size = 1)
 shuf_pairs_comp = pair_gen([comp_spk_train], phA_rnds = 100, sub_batch_size = 1)
 
 for i in range(3000):
@@ -99,9 +99,9 @@ ax.plot(acc_holi,label=r'$\rho$'+'=0.21')
 ax.legend()
 #ax.show()
 
-plt.xlabel('Number of pre-train rounds',fontsize=16)
-plt.ylabel('Smoothed training accuracy',fontsize=16)
-ax.legend(fontsize=14)
+plt.xlabel('Number of pre-train rounds',fontsize=20)
+plt.ylabel('Learning accuracy',fontsize=20)
+ax.legend(fontsize=20)
 ax.grid('on')
 fig_rwd2.tight_layout()
 fig_rwd2.savefig('Figures/Learning_spd_spk.pdf')

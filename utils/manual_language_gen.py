@@ -111,7 +111,7 @@ comp, _, _ = compos_cal_inner(holi_spk_train['msg'],holi_spk_train['data'])
 print('Holi comp is: '+ str(comp))
 
 # ========== Holistic language2 ===================
-PERM2 = 50#20#50
+PERM2 = 20#50
 holi_spk_train2 = {}
 new_idx2 = comp_spk_train['data']
 perm = torch.randperm(PERM2)
@@ -124,7 +124,7 @@ comp, _, _ = compos_cal_inner(holi_spk_train2['msg'],holi_spk_train2['data'])
 print('Holi2 comp is: '+ str(comp))
 
 # ========== Holistic language3 ===================
-PERM3 = 35#10#35
+PERM3 = 10#35
 holi_spk_train3 = {}
 new_idx3 = comp_spk_train['data']
 perm = torch.randperm(PERM3)

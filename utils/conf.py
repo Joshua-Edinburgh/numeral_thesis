@@ -39,7 +39,7 @@ parser.add_argument('--phA', type=int, default=1200, help='the rounds for phase 
 parser.add_argument('--phB',type=int, default=4000, help='the rounds for phase B')
 parser.add_argument('--phLP',type=int, default=200, help='the rounds for phase pre-train listener')
 parser.add_argument('--path',type=str, default='test', help='the path to save the results')
-parser.add_argument('--valid_num',type=int,default=8,help='size of validation set')
+parser.add_argument('--valid_num',type=int,default=0,help='size of validation set')
 
 args = parser.parse_args()
 
