@@ -68,7 +68,7 @@ NUM_SYSTEM = args.num_sys         # Number system, usually just use decimal
 HIDDEN_SIZE = 128       
 BATCH_SIZE = NUM_SYSTEM**ATTRI_SIZE
 MSG_MAX_LEN = ATTRI_SIZE + 0      # Controlled by ourselves
-VALID_NUM = 16      # Ratio of valid set to train set
+VALID_NUM = args.valid_num      # Ratio of valid set to train set
 
 # Size of vocabulary this is available for communication
 MSG_VOCSIZE = NUM_SYSTEM+0
