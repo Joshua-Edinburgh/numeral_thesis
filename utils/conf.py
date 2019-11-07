@@ -35,11 +35,13 @@ parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--lr_ratio',type=float, default=1, help='lr for listener is lr*lr_ratio')
 parser.add_argument('--sel_candi', type=int, default=15, help='candiates for the listene')
 parser.add_argument('--num_sys', type=int, default=8, help='number of attributes')
-parser.add_argument('--phA', type=int, default=1200, help='the rounds for phase A')
-parser.add_argument('--phB',type=int, default=3000, help='the rounds for phase B')
-parser.add_argument('--phLP',type=int, default=200, help='the rounds for phase pre-train listener')
+parser.add_argument('--voc_len_add', type=int, default=0, help='added vocabulary size')
+parser.add_argument('--Ia', type=int, default=1200, help='pretrain rounds of Alice')
+parser.add_argument('--Ib', type=int, default=200, help='pretrain rounds of Bob')
+parser.add_argument('--Ig',type=int, default=3000, help='rounds of interaction')
 parser.add_argument('--path',type=str, default='test', help='the path to save the results')
-parser.add_argument('--valid_num',type=int,default=0,help='size of validation set')
+parser.add_argument('--valid_num',type=int,default=8,help='size of validation set')
+parser.add_argument('--max_gen',type=int,default=100,help='max generations')
 
 args = parser.parse_args()
 
@@ -71,7 +73,7 @@ MSG_MAX_LEN = ATTRI_SIZE + 0      # Controlled by ourselves
 VALID_NUM = args.valid_num      # Ratio of valid set to train set
 
 # Size of vocabulary this is available for communication
-MSG_VOCSIZE = NUM_SYSTEM+10
+MSG_VOCSIZE = NUM_SYSTEM+args.voc_len_add
 MSG_MODE = 'REINFORCE' # 'GUMBEL' or 'REINFORCE'
 MSG_HARD = True # Discretized as one-hot vectors
 

@@ -10,7 +10,10 @@ from utils.conf import *
 import pandas as pd
 import os
 
-vocab_table_full = [chr(97+int(v)) for v in range(26)]
+#vocab_table_full = [chr(97+int(v)) for v in range(26)]
+vocab_table_full = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+                'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+                '1','2','3','4','5','6','7','8','9','0','~','!','@','#','$','%','^','&','*','(',')','_','+','<','>','?']
 #vocab_table_full[-1] = '@'
 
 # concept1, concept2 = ('blue','box'), ('red','circle')
