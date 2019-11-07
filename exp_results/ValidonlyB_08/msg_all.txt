@@ -1,9 +1,0 @@
-0	1	2	3	4	5	6	7	8	
-1	dd	af	dd	bd	hd	de	dd	bd	
-2	dh	ac	cc	bh	hh	ce	gc	bh	
-3	bb	bf	bc	ba	hb	db	bf	bg	
-4	eb	ab	cb	ba	hb	ab	fb	bb	
-5	ed	ah	cd	ad	ah	ae	gd	gh	
-6	eg	ag	cg	bg	bb	ag	gf	gg	
-7	da	aa	ca	fa	ha	da	gc	ee	
-8	ce	af	cf	fd	fh	fe	ff	ge	
