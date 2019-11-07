@@ -52,7 +52,7 @@ setup_seed(args.seed)   # 12345 is valid for N_B=100, SEL_CAN = 5
 '''
 for training model
 '''
-DEVICE = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 LEARNING_RATE = args.lr # learning rate
 CLIP = 50.0 # max after clipping gradient
 DECODER_LEARING_RATIO = args.lr_ratio
@@ -71,7 +71,7 @@ MSG_MAX_LEN = ATTRI_SIZE + 0      # Controlled by ourselves
 VALID_NUM = args.valid_num      # Ratio of valid set to train set
 
 # Size of vocabulary this is available for communication
-MSG_VOCSIZE = NUM_SYSTEM+0
+MSG_VOCSIZE = NUM_SYSTEM+10
 MSG_MODE = 'REINFORCE' # 'GUMBEL' or 'REINFORCE'
 MSG_HARD = True # Discretized as one-hot vectors
 
