@@ -33,16 +33,16 @@ parser.add_argument('--tau', type=int, default=2, help='for gumble softmax')
 parser.add_argument('--seed', type=int, default=12345, help='random seed')
 parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--lr_ratio',type=float, default=1, help='lr for listener is lr*lr_ratio')
-parser.add_argument('--sel_candi', type=int, default=30, help='candiates for the listene')
-parser.add_argument('--num_sys', type=int, default=20, help='number of attributes')
+parser.add_argument('--sel_candi', type=int, default=15, help='candiates for the listene')
+parser.add_argument('--num_sys', type=int, default=8, help='number of attributes')
 parser.add_argument('--voc_len_add', type=int, default=0, help='added vocabulary size')
 parser.add_argument('--msg_len_add', type=int, default=0, help='added msg length size')
 parser.add_argument('--Ia', type=int, default=1200, help='pretrain rounds of Alice')
 parser.add_argument('--Ib', type=int, default=200, help='pretrain rounds of Bob')
-parser.add_argument('--Ig',type=int, default=3000, help='rounds of interaction')
+parser.add_argument('--Ig',type=int, default=2000, help='rounds of interaction')
 parser.add_argument('--path',type=str, default='Big_object_space_full', help='the path to save the results')
 parser.add_argument('--valid_num',type=int,default=8,help='size of validation set')
-parser.add_argument('--max_gen',type=int,default=100,help='max generations')
+parser.add_argument('--max_gen',type=int,default=80,help='max generations')
 
 args = parser.parse_args()
 
@@ -68,7 +68,7 @@ hyperparameters of model
 SEL_CANDID = args.sel_candi          # Number of candidate when selecting
 ATTRI_SIZE = 2          # Number of attributes, i.e., number of digits
 NUM_SYSTEM = args.num_sys         # Number system, usually just use decimal
-HIDDEN_SIZE = 128       
+HIDDEN_SIZE = 128
 BATCH_SIZE = NUM_SYSTEM**ATTRI_SIZE
 MSG_MAX_LEN = ATTRI_SIZE + args.msg_len_add      # Controlled by ourselves
 VALID_NUM = args.valid_num      # Ratio of valid set to train set
