@@ -1,0 +1,9 @@
+0	1	2	3	4	5	6	7	8	
+1	sw	cw	ow	fw	rw	ww	ew	kw	
+2	sd	cd	od	fd	rd	dd	ed	kd	
+3	so	co	oq	fo	ro	oo	eo	ko	
+4	su	cu	oc	fc	ru	uu	ec	ku	
+5	sn	cn	on	fn	rv	vv	en	kn	
+6	sp	cp	op	fp	rp	hp	ep	kp	
+7	sx	cx	ox	fx	rx	xx	ex	kx	
+8	ss	cs	os	fs	rs	gs	es	ks	

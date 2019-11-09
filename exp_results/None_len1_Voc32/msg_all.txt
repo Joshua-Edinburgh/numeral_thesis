@@ -1,0 +1,9 @@
+0	1	2	3	4	5	6	7	8	
+1	fM	fe	fM	fM	qM	fM	qM	MM	
+2	kv	FK	Ic	jn	Ma	ji	Ml	kK	
+3	kJ	wb	tx	KK	bJ	bb	bJ	kb	
+4	Gv	FH	lH	Hv	HC	Gs	HN	NN	
+5	BB	we	tl	Kf	ba	bf	Mo	tk	
+6	kI	Ff	Iq	Kj	bC	tj	tq	kI	
+7	GG	Fh	uF	nj	ua	Lz	uG	Gk	
+8	hw	FH	IH	jF	DD	jq	qu	lK	

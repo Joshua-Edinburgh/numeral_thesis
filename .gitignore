@@ -1,4 +1,3 @@
 *.pyc
-*.npy
 utils/__pycache__/*.*
 models/__pycache__/*.*

@@ -1,0 +1,9 @@
+0	1	2	3	4	5	6	7	8	
+1	af	av	aJ	aI	am	az	aD	aN	
+2	bf	bb	bK	br	bm	bz	bD	bN	
+3	eG	ev	eK	er	em	ez	eD	eN	
+4	pf	pv	pK	pr	pm	pz	pu	pN	
+5	Ff	Fv	FK	Fr	Fm	Fz	FD	FN	
+6	Mf	Mv	MK	Mr	Mm	Mz	MA	MN	
+7	qf	qb	qK	qr	qm	qz	qD	qN	
+8	kl	kv	kJ	kr	km	kz	kA	kN	
