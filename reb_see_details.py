@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov  7 10:08:33 2019
+Created on Fri Jul 26 16:49:13 2019
 
-@author: joshua
+@author: s1583620
 """
 
 from utils.conf import *
@@ -14,13 +14,10 @@ from torch.nn import NLLLoss
 import matplotlib.pyplot as plt
 import os
 
-
 speaker = SpeakingAgent().to(DEVICE)
 listener = ListeningAgent().to(DEVICE)
 spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
 lis_optimizer = OPTIMISER(listener.parameters(), lr=LEARNING_RATE * DECODER_LEARING_RATIO)
-
-batch_list = batch_data_gen()
 
 def cal_correct_preds(data_batch, data_candidate, pred_idx):
     '''
@@ -69,7 +66,7 @@ def train_phaseA(speaker, spk_optimizer, data_for_spk, clip=CLIP):
         if (Y_pred[i]==Y_hat[i]).sum()==ATTRI_SIZE:
             acc_cnt += 1
 
-    return acc_cnt/X.shape[0]
+    return acc_cnt/X.shape[0], Y_hiddens.data
 
 
 
@@ -90,7 +87,7 @@ def train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, train_batch, t
     true_idx = torch.tensor(sel_idx_train).to(DEVICE)
 
             # =========== Forward process =======
-    msg, spk_log_prob, spk_entropy, _ = speaker(train_batch)
+    msg, spk_log_prob, spk_entropy, Y_hiddens = speaker(train_batch)
     pred_vector = listener(train_candidates, msg)
     lis_entropy = -(F.softmax(pred_vector)*F.log_softmax(pred_vector)).sum(dim=1)
     lis_log_prob = F.log_softmax(pred_vector.max(dim=1)[0])
@@ -145,7 +142,7 @@ def train_phaseB(speaker, listener, spk_optimizer, lis_optimizer, train_batch, t
 
     # =========== Result Statistics ==============
 
-    return reward, spk_loss.item(), lis_loss.mean().item()
+    return reward, spk_loss.item(), lis_loss.mean().item(), Y_hiddens.data
 
 
 def train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = False):
@@ -186,7 +183,6 @@ def train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train
 
         return data_for_spk
 
-
 def valid_cal(speaker, listener, valid_full, valid_candidates):
     '''
         Use valid data batch to see the accuracy for validation.
@@ -203,17 +199,23 @@ def valid_cal(speaker, listener, valid_full, valid_candidates):
         return val_acc/valid_full.shape[0]
 
 
-
+def track_one_msg_prob(speaker):
+    with torch.no_grad():
+        speaker.eval()
+        msg, _, _, Y_hiddens = speaker(np.array([1,2,3,4]))
+        msg_prob = F.softmax(Y_hiddens,dim=2)
+        return msg, msg_prob
 
 # ============= Iterated method 1: just re-initialize listener =======
 rewards = []
 comp_ps = []
 comp_ss = []
 msg_types = []
+msg_prob_table=[]
 valid_accs = []
 comp_generations = []
+comp_generations_afterA = []
 max_comp = 0
-
 
 for i in range(args.max_gen):       
     # ====================== Phase B ===================================
@@ -230,31 +232,25 @@ for i in range(args.max_gen):
             train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
 
         if Ig_cnt<=args.Ib:
-            reward, spk_loss, lis_loss = train_phaseB(speaker, listener, spk_optimizer, lis_optimizer,
+            reward, spk_loss, lis_loss, _ = train_phaseB(speaker, listener, spk_optimizer, lis_optimizer,
                                                   train_batch, train_candidates, sel_idx_train,
                                                   exp_ratio = decay_explore_ratio,
                                                   update='LISTENER')
         else:
-            reward, spk_loss, lis_loss = train_phaseB(speaker, listener, spk_optimizer, lis_optimizer,
+            reward, spk_loss, lis_loss, _ = train_phaseB(speaker, listener, spk_optimizer, lis_optimizer,
                                                   train_batch, train_candidates, sel_idx_train,
                                                   exp_ratio = decay_explore_ratio,
                                                   update='BOTH')
 
         rewards.append(reward)
         rwd_avg20 = (1-0.01)*rwd_avg20 + 0.01*reward
-        '''
-        if rwd_avg20 >= 15:
-            decay_explore_ratio = 2
 
-        if rwd_avg20 >= 20:
-            decay_explore_ratio = 3
-
-        if rwd_avg20 >= 23:
-            decay_explore_ratio = 4
-        '''
-        print('Gen.%d ==PhaseB==Round %d, rwd (%d, %d), spk_loss %.4f, lis_loss %.4f'%(i,Ig_cnt,reward, rwd_avg20, spk_loss, lis_loss))
+       
 
         if Ig_cnt%20==1:
+            _, msg_prob = track_one_msg_prob(speaker)
+            msg_prob_table.append(msg_prob)            
+            print('Gen.%d ==PhaseB==Round %d, rwd (%d, %d), spk_loss %.4f, lis_loss %.4f'%(i,Ig_cnt,reward, rwd_avg20, spk_loss, lis_loss))
             all_msgs = msg_generator(speaker, all_list, vocab_table_full, padding=True)
             msg_types.append(len(set(all_msgs.values())))
             comp_p, comp_s = compos_cal(all_msgs)
@@ -272,19 +268,20 @@ for i in range(args.max_gen):
         valid_accs.append(valid_acc)
     # ====================== Record of language ===================================
     data_list = []
-    #comp_list = []
-    for c in range(20):
+    comp_list = []
+    for c in range(200):
         batch_list = batch_data_gen()
         train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
         data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = True)
         data_list.append(data_for_spk)
-        #comp_list.append(compos_cal_inner(data_for_spk['msg'],data_for_spk['data'])[0])
-        print('Gen.%d @@PhaseC@@, round %d'%(i,c))
-    #comp_generations.append(comp_list)
+        comp_list.append(compos_cal_inner(data_for_spk['msg'],data_for_spk['data'])[0])
+    print('Gen.%d @@Phase_beforeA@@, round %d'%(i,c))
+    comp_generations.append(comp_list)
 
 
     # ====================== Phase C ===================================
-    shuf_pairs = pair_gen(data_list, phA_rnds = 100, sub_batch_size = 1)
+    shuf_pairs = pair_gen(data_list, phA_rnds = args.pairs_teach, sub_batch_size = 1)
+    dege_pairs = pair_gen(data_list, phA_rnds = args.pairs_teach, degnerate='full', sub_batch_size = 1)
     # ====================== Phase A ===================================
     speaker = SpeakingAgent().to(DEVICE)
     spk_optimizer = OPTIMISER(speaker.parameters(), lr=LEARNING_RATE)
@@ -293,10 +290,32 @@ for i in range(args.max_gen):
     while (Ia_cnt<args.Ia):
         Ia_cnt += 1
         data_for_spk = random.choice(shuf_pairs)
-        acc = train_phaseA(speaker, spk_optimizer, data_for_spk)
+        acc, _ = train_phaseA(speaker, spk_optimizer, data_for_spk)
+        if Ia_cnt%20==1:
+            _, msg_prob = track_one_msg_prob(speaker)
+            msg_prob_table.append(msg_prob)
+            all_msgs = msg_generator(speaker, all_list, vocab_table_full, padding=True)
+            msg_types.append(len(set(all_msgs.values())))
+            comp_p, comp_s = compos_cal(all_msgs)
+            comp_ps.append(comp_p)
+            comp_ss.append(comp_s)            
+            
         acc_avg20 = (1-0.05)*acc_avg20 + 0.05*acc
-        print('Gen.%d @@PhaseA@@, round is %d, acc is %.4f, acc_avg20 is %.4f'%(i,Ia_cnt, acc,acc_avg20))
-        print(comp_ps[-1])
+    print('Gen.%d @@PhaseA@@, round is %d, acc is %.4f, acc_avg20 is %.4f'%(i,Ia_cnt, acc,acc_avg20))
+    print(comp_ps[-1])
+
+    # ====================== Record of language ===================================
+    data_list = []
+    comp_list = []
+    for c in range(200):
+        batch_list = batch_data_gen()
+        train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
+        data_for_spk = train_phaseC(speaker, listener, train_batch, train_candidates, sel_idx_train, rwd_filter = True)
+        data_list.append(data_for_spk)
+        comp_list.append(compos_cal_inner(data_for_spk['msg'],data_for_spk['data'])[0])
+    print('Gen.%d @@Phase_AfterA@@, round %d'%(i,c))
+    comp_generations_afterA.append(comp_list)
+
 
 if not os.path.exists('exp_results'):
     os.mkdir('exp_results')
@@ -307,11 +326,8 @@ if not os.path.exists(save_path):
 np.save(save_path+'comp_ps.npy', comp_ps)
 np.save(save_path+'rewards.npy',rewards)
 np.save(save_path+'msg_types.npy',np.asarray(msg_types))
-np.save(save_path+'valid_accs', np.asarray(valid_accs).reshape(-1,200))
-#np.save(save_path+'comp_generations', np.asarray(comp_generations))
+np.save(save_path+'msg_probs.npy',np.asarray(torch.stack(msg_prob_table).cpu()))
+np.save(save_path+'comp_generations', np.asarray(comp_generations))
+np.save(save_path+'comp_generations_afterA', np.asarray(comp_generations_afterA))
+np.save(save_path+'valid_accs', np.asarray(valid_accs))
 msg_print_to_file(max_msg_all, save_path)
-
-
-
-#all_msgs = msg_generator(speaker, all_list, vocab_table_full, padding=True)
-#comp_p, comp_s = compos_cal(all_msgs)

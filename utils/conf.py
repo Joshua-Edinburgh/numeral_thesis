@@ -40,7 +40,7 @@ parser.add_argument('--msg_len_add', type=int, default=0, help='added msg length
 parser.add_argument('--Ia', type=int, default=1200, help='pretrain rounds of Alice')
 parser.add_argument('--Ib', type=int, default=200, help='pretrain rounds of Bob')
 parser.add_argument('--Ig',type=int, default=3000, help='rounds of interaction')
-parser.add_argument('--path',type=str, default='Big_object_space_full', help='the path to save the results')
+parser.add_argument('--path',type=str, default='test', help='the path to save the results')
 parser.add_argument('--valid_num',type=int,default=8,help='size of validation set')
 parser.add_argument('--max_gen',type=int,default=80,help='max generations')
 parser.add_argument('--pairs_teach',type=int,default=100,help='sampled pairs for listener pretrain')

@@ -226,7 +226,7 @@ for i in range(args.max_gen):
     while(Ig_cnt<args.Ig):
         Ig_cnt += 1
         if Ig_cnt%4==1:
-            batch_list = batch_data_gen()
+            batch_list, _ = batch_data_gen_valid(train_list, valid_list)
             train_batch, train_candidates, sel_idx_train = batch_list[0]['data'], batch_list[0]['candidates'], batch_list[0]['sel_idx']
 
         if Ig_cnt<=args.Ib:

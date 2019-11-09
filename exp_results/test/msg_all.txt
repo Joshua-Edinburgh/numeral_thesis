@@ -1,0 +1,9 @@
+0	1	2	3	4	5	6	7	8	
+1	ag	cg	gg	gg	ag	gg	ad	hg	
+2	gg	de	dd	gg	ee	gg	dd	hg	
+3	dd	dd	dd	gg	dd	hg	dd	hg	
+4	dd	dd	dd	gg	aa	hg	dd	hd	
+5	dg	dd	hg	gg	eg	gg	dd	hg	
+6	gg	dd	dg	gg	ag	gg	dd	hg	
+7	dg	dd	dd	gg	gg	gg	dd	gg	
+8	gg	gg	gg	gg	gg	gg	dg	gg	
