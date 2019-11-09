@@ -138,7 +138,7 @@ holi_spk_train3['msg'] = comp_spk_train['msg'][:,new_idx3,:]
 comp, _, _ = compos_cal_inner(holi_spk_train3['msg'],holi_spk_train3['data'])
 print('Holi3 comp is: '+ str(comp))
 
-
+'''
 # ========== Read language from txt ===================
 path = 'exp_results/test_both_spk_and_lis/msg_all.txt'
 read_spk_train = {}
@@ -157,7 +157,7 @@ read_spk_train['data'] = comp_spk_train['data']
 read_spk_train['msg'] = torch.stack(msg_list).transpose(0,1)
 comp, _, _ = compos_cal_inner(read_spk_train['msg'],read_spk_train['data'])
 print('Txt comp is: '+ str(comp))
-
+'''
 
 
 # =================== Manual Language For the listener ========================
