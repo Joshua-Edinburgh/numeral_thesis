@@ -1,0 +1,9 @@
+0	1	2	3	4	5	6	7	8	
+1	pn	kp	kn	dd	ii	kd	ko	km	
+2	ph	nb	cg	og	ce	hg	cf	cj	
+3	je	ja	jg	jk	jc	hm	jf	jm	
+4	ea	na	la	eh	ee	hh	ef	en	
+5	pl	nd	cn	ol	cp	hd	jd	jh	
+6	ie	db	dg	ej	db	dm	ff	dj	
+7	pg	dp	dn	dl	de	dh	dp	dm	
+8	bp	lp	lc	ll	le	lh	lf	ll	
