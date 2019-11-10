@@ -7,3 +7,12 @@
 6	kc	kj	kd	kg	kb	kk	kh	ke	
 7	jc	jj	jd	jg	jb	jk	jh	je	
 8	ec	ej	ed	eg	eb	ek	eh	ee	
+0	1	2	3	4	5	6	7	8	
+1	jg	ji	jj	jc	jk	je	ja	jf	
+2	dg	di	dj	dc	dk	de	da	df	
+3	cg	ci	cj	cc	ck	ce	ca	cf	
+4	kg	kd	kj	kc	kk	ke	ka	kf	
+5	eg	ei	ej	ec	ek	ee	ea	ef	
+6	lg	ld	lj	lc	lk	le	la	lf	
+7	fg	fi	fj	fc	fk	fe	fa	ff	
+8	gg	gi	gj	gc	gk	ge	ga	gf	

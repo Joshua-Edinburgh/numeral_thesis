@@ -7,3 +7,12 @@
 6	fc	fh	fg	fm	ff	fi	fa	fl	
 7	mc	mh	mg	mm	mf	mi	ma	ml	
 8	ac	ah	ag	am	af	ai	aa	al	
+0	1	2	3	4	5	6	7	8	
+1	ll	mb	mg	mm	mp	ma	mi	mf	
+2	bl	bb	bg	bm	bp	ba	bi	bf	
+3	ol	ob	jg	om	op	oa	oi	of	
+4	pl	pb	pg	pm	pp	pa	pi	pf	
+5	gl	gb	gg	gm	gp	ga	gi	gf	
+6	fl	fb	fg	fm	fp	fa	fi	ff	
+7	kl	kb	kg	km	kp	ka	ki	kf	
+8	dl	db	dg	dm	dp	da	di	df	

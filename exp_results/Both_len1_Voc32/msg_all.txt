@@ -7,3 +7,12 @@
 6	Mf	Mv	MK	Mr	Mm	Mz	MA	MN	
 7	qf	qb	qK	qr	qm	qz	qD	qN	
 8	kl	kv	kJ	kr	km	kz	kA	kN	
+0	1	2	3	4	5	6	7	8	
+1	FM	Fl	FI	Ft	Fd	Fj	Fn	Fw	
+2	pM	pl	pI	HH	pd	ph	pC	pw	
+3	zM	zl	zA	zt	zd	zj	zC	zw	
+4	CM	Cl	CI	Cr	Cd	Cj	Cn	Ce	
+5	bM	bl	bI	bt	bd	bj	bn	bw	
+6	NM	xa	xI	xt	xd	xL	xc	xe	
+7	DM	Da	DI	Dt	Dd	Dj	Dn	Dw	
+8	qM	ql	qI	qt	qd	qj	qn	qw	

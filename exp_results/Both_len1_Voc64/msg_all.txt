@@ -7,3 +7,12 @@
 6	63	C3	i3	M3	P3	p3	03	I3	
 7	6T	Cl	iV	ML	uV	pL	0W	ID	
 8	6Z	CR	iR	MZ	PZ	pR	0R	IR	
+0	1	2	3	4	5	6	7	8	
+1	WE	@H	6H	MH	sH	^H	QH	AH	
+2	4x	@!	6!	M!	s!	^w	Q!	A!	
+3	33	@(	63	M3	s(	^(	Q3	A(	
+4	%%	@R	6R	Me	sR	^R	QR	A7	
+5	WW	@W	6W	MW	sW	^W	QW	AW	
+6	kk	@k	6k	Mk	sk	^k	Qk	Ak	
+7	Ch	@#	6h	Mh	sh	^h	Qh	Ah	
+8	ff	@f	6f	Mf	sf	^f	Qf	Af	

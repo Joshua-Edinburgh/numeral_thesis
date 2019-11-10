@@ -16,3 +16,12 @@
 6	dab	dfe	dgg	dhh	dda	dce	dbe	dbe	
 7	bab	bfe	bga	bhh	bda	bce	bbe	bbb	
 8	aab	afd	agd	ahh	add	acc	abd	abb	
+0	1	2	3	4	5	6	7	8	
+1	ccc	chf	cbb	cfg	cdd	caa	cge	ceg	
+2	ecc	ehf	dbb	efd	edd	eah	egf	eec	
+3	ccc	chc	cbb	cfc	cdd	caa	cge	cee	
+4	fcc	fhc	fbb	ffc	fdd	faa	fge	fee	
+5	hcc	hhc	hbb	hfc	hdc	haa	hgf	hef	
+6	ecc	ehe	ebb	efa	edb	eaa	ege	eee	
+7	bcc	bhh	bbb	bfc	bdd	baa	bge	bee	
+8	acc	ahh	abb	afc	add	aaa	age	aee	

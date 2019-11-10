@@ -7,3 +7,12 @@
 6	sp	cp	op	fp	rp	hp	ep	kp	
 7	sx	cx	ox	fx	rx	xx	ex	kx	
 8	ss	cs	os	fs	rs	gs	es	ks	
+0	1	2	3	4	5	6	7	8	
+1	hv	hx	ho	hf	ha	hq	hw	hj	
+2	nv	nx	ng	nf	na	nq	nw	nj	
+3	sv	sx	so	sf	sa	sq	sw	sj	
+4	gg	gx	go	gf	ga	gq	gw	gj	
+5	kv	kx	ko	kf	ka	kq	kw	kj	
+6	ev	ex	eo	eu	ea	eq	ew	ej	
+7	av	ax	ao	af	aa	aq	aw	aj	
+8	pv	px	po	pf	pa	pq	pw	pj	

@@ -7,3 +7,12 @@
 6	fh	hh	eh	ch	ah	gh	dh	bh	
 7	fd	hd	ed	cd	ad	gd	dd	bd	
 8	fb	hb	eb	cb	ab	gb	db	bb	
+0	1	2	3	4	5	6	7	8	
+1	ga	gh	gd	gb	gc	gf	gg	ge	
+2	ea	eh	ed	eb	ec	ef	eg	ee	
+3	fa	fh	fd	fb	fc	ff	fg	fe	
+4	da	dh	dd	db	dc	df	dg	de	
+5	ha	hh	hd	hb	hc	hf	hg	he	
+6	ca	ch	cd	cb	cc	cf	cg	ce	
+7	aa	ah	ad	ab	ac	af	ad	ae	
+8	ba	bh	bd	bb	bc	bf	bg	be	
