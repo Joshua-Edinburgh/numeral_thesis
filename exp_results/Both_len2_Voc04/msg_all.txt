@@ -16,3 +16,12 @@
 6	jli	klj	glj	elj	dlk	blc	glj	clb	
 7	jgl	kgl	ggl	egk	dgk	bgl	ggl	cgl	
 8	jac	kac	gac	eaj	dac	baj	gac	cac	
+0	1	2	3	4	5	6	7	8	
+1	dee	gel	keg	feg	beg	cee	ieg	eeh	
+2	djk	gjj	kjj	fjb	bjj	cjk	ijf	ejk	
+3	ddf	gdh	kdd	fde	bdf	cdd	idd	edd	
+4	daa	gaa	kaa	fad	baa	cai	iak	eaa	
+5	dbi	gbj	kbf	fbj	bbj	cbi	ibf	ebk	
+6	dhf	ghh	khk	fhb	bhe	chj	ihk	ehk	
+7	dce	gci	kcg	fcb	bci	cci	ici	ecd	
+8	dga	ggb	kgg	fgg	bgj	cgi	igd	egd	

@@ -16,3 +16,12 @@
 6	dpd	dwt	dob	dbx	dgt	drr	dff	ded	
 7	apm	awi	aom	abm	agk	arm	afe	aeg	
 8	app	awn	aoc	abf	agk	arc	afc	aec	
+0	1	2	3	4	5	6	7	8	
+1	ctc	vtx	rtx	gtc	atc	ltc	itg	dtc	
+2	cwn	vwa	rwr	gwn	awt	lwt	iwg	dwd	
+3	csg	vsx	rsr	gst	aso	lsd	isi	dsi	
+4	ckg	vkg	rkr	gkg	akj	lkd	ikv	dke	
+5	chs	vhv	rhs	ghu	ahr	lhf	ihk	dhu	
+6	cbr	vbp	rbp	gbv	abo	lbo	ibi	dbv	
+7	cqe	vqe	rqe	gqe	aqe	lqo	iqi	dqe	
+8	can	vap	rap	gau	aau	laf	iau	dad	

@@ -16,3 +16,12 @@
 6	cpa	cfh	cml	coc	cje	ckc	cgf	cni	
 7	hpa	hfh	hma	hoo	hjk	hkl	hgb	hnh	
 8	lpl	lfh	lmd	loc	ljk	lkl	lgh	lnh	
+0	1	2	3	4	5	6	7	8	
+1	gco	pcp	mcm	kcg	cci	lcj	ecn	icp	
+2	gff	pfk	mfk	kfk	ffk	lfk	efk	ifk	
+3	gll	pll	mlc	kll	llc	llc	elc	ilh	
+4	gof	poo	mof	kof	oof	loj	eon	ion	
+5	ghh	phh	mhh	khh	ehh	lhh	ehh	ihh	
+6	gda	pdp	mdm	kdm	ddm	ldm	edm	ida	
+7	gjn	pjo	mjo	kje	jjn	ljj	ejn	ijo	
+8	gie	pip	mia	kib	iib	lib	eip	iib	

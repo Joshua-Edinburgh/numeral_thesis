@@ -16,3 +16,12 @@
 6	w8k	882	(8!	189	O8$	38Z	u89	*8!	
 7	wtE	ttx	(tb	1tE	OtC	3tE	utx	*tx	
 8	wW&	WW^	(Wd	1W1	OW^	3WJ	uW^	*W*	
+0	1	2	3	4	5	6	7	8	
+1	qn(	Unn	Cn~	ln8	$n0	Vnb	%nY	WnY	
+2	q&@	U&6	C&A	l&Q	$&E	V&N	%&L	W&p	
+3	qgH	UgS	CgS	lgT	$gE	VgI	%gI	Wgp	
+4	qU6	UU9	CUC	lUl	$U0	VUu	%U%	WU6	
+5	q!(	U!&	C!(	l!V	$!(	V!V	%!h	W!n	
+6	qM@	UMu	CMe	lM2	$Mx	VMr	%Mr	WM2	
+7	qha	UhP	ChX	lha	$hE	Vhc	%hV	WhW	
+8	qFH	UFd	CFG	lF8	$FE	VFs	%FG	WFd	

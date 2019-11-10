@@ -16,3 +16,12 @@
 6	psL	pzF	pAi	pNI	pav	pyo	pCK	poi	
 7	ssL	zzF	AAt	NNK	aat	yyM	CCK	ooB	
 8	sHL	zHF	AHq	NHe	aHe	yHM	CHq	oHG	
+0	1	2	3	4	5	6	7	8	
+1	Jiz	Jch	JrJ	JnL	Jui	JDh	JNo	Jbx	
+2	Fix	FcF	Frx	Fnf	Fuh	FDo	FNF	Fbu	
+3	KiE	KcK	Krb	Knp	Kup	KDA	KNv	Kbi	
+4	wiE	wcc	wry	wnG	wuh	wDA	wNv	wbz	
+5	lil	lcI	lra	lnL	lup	lDh	lNN	lbx	
+6	kil	kcK	krl	knG	kuM	kDM	kNM	kbz	
+7	mil	mct	mrb	mnG	mun	mDj	mNG	mbb	
+8	siE	scd	srB	snL	suj	sDu	sNv	sby	
